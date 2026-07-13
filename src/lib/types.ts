@@ -45,6 +45,8 @@ export type Extraction = {
   raw_drug_b_text: string;
   mechanism: string | null;
   confidence_score: string | null;
+  page_number: number | null;
+  paragraph_number: number | null;
   citation_text: string | null;
   status: string;
   gate_reason: string | null;

@@ -62,3 +62,29 @@ export async function apiFetch<T>(
 
   return data as T;
 }
+
+// M15/M16 — GET /sources/{id}/file mengembalikan byte PDF mentah (bukan JSON),
+// jadi tidak bisa lewat apiFetch di atas yang selalu memanggil .json(). Dipakai
+// PDF viewer untuk fetch file lewat Bearer token lalu diubah jadi object URL,
+// karena <iframe src>/PDF.js getDocument(url) langsung tidak bisa membawa
+// header Authorization ke request-nya.
+export async function apiFetchBlob(path: string): Promise<Blob> {
+  const token = getToken();
+
+  const response = await fetch(`/api${path}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new ApiError(
+      data?.message ?? "Gagal memuat berkas.",
+      response.status,
+      data?.errors,
+    );
+  }
+
+  return response.blob();
+}

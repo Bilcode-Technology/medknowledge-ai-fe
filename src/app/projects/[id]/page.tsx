@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { FileUp, FlaskConical, CheckCircle2, XCircle, Clock, AlertTriangle, Eye } from "lucide-react";
+import { FileUp, FlaskConical, CheckCircle2, XCircle, Clock, AlertTriangle, Eye, FileSearch } from "lucide-react";
 import { ProtectedShell } from "@/components/protected-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
