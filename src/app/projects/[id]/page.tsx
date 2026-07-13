@@ -191,7 +191,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="px-6 text-xs">Dokumen</TableHead>
                     <TableHead className="text-xs">OCR</TableHead>
-                    <TableHead className="px-6 text-xs">Validasi (M12)</TableHead>
+                    <TableHead className="text-xs">Validasi (M12)</TableHead>
+                    <TableHead className="px-6 text-xs text-right">Viewer (M15/M16)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -206,12 +207,26 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                       </TableCell>
                       <TableCell>{ocrBadge(source.ocr_status)}</TableCell>
-                      <TableCell className="px-6">{validationBadge(source.validation_status)}</TableCell>
+                      <TableCell>{validationBadge(source.validation_status)}</TableCell>
+                      <TableCell className="px-6 text-right">
+                        {source.source_type === "pdf" ? (
+                          <Button
+                            render={<Link href={`/projects/${id}/sources/${source.id}`} />}
+                            variant="ghost"
+                            size="xs"
+                            className="text-primary hover:text-foreground"
+                          >
+                            <FileSearch className="h-3.5 w-3.5 mr-1" /> Lihat PDF
+                          </Button>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {sources.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center text-xs text-muted-foreground py-6">
+                      <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-6">
                         Belum ada dokumen sumber diunggah.
                       </TableCell>
                     </TableRow>

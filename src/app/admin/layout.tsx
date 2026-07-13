@@ -7,14 +7,16 @@ import { ProtectedShell } from "@/components/protected-shell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 
-// M49 — Panel administrasi (4 halaman: Pengguna, Kategori, Reference Standards,
-// AI Playground). Layout ini satu-satunya tempat yang melakukan role-gate untuk
-// seluruh section /admin/* (bukan diulang di tiap page.tsx) — lihat catatan tiap
-// item di ADMIN_NAV untuk role mana saja yang boleh mengakses tiap sub-halaman:
-// Pengguna & AI Playground murni role:admin di backend, sedangkan Kategori &
-// Reference Standards mengizinkan admin+project_manager (read sebenarnya terbuka
-// untuk semua user terautentikasi di backend, tapi UI ini sengaja dibatasi hanya
-// untuk admin/project_manager karena section /admin memang area utilitas admin).
+// M49 — Panel administrasi (5 halaman: Pengguna, Kategori, Reference Standards,
+// AI Playground, FHIR Sandbox). Layout ini satu-satunya tempat yang melakukan
+// role-gate untuk seluruh section /admin/* (bukan diulang di tiap page.tsx) —
+// lihat catatan tiap item di ADMIN_NAV untuk role mana saja yang boleh mengakses
+// tiap sub-halaman: Pengguna & AI Playground murni role:admin di backend, FHIR
+// Sandbox admin+fhir_engineer (cocok dengan role:admin,fhir_engineer di backend
+// POST /fhir/validate), sedangkan Kategori & Reference Standards mengizinkan
+// admin+project_manager (read sebenarnya terbuka untuk semua user terautentikasi
+// di backend, tapi UI ini sengaja dibatasi hanya untuk admin/project_manager
+// karena section /admin memang area utilitas admin).
 type AdminNavItem = {
   title: string;
   href: string;
@@ -42,11 +44,18 @@ const ADMIN_NAV: AdminNavItem[] = [
     breadcrumb: "AI Playground & Cost Monitor",
     roles: ["admin"],
   },
+  {
+    title: "FHIR Sandbox",
+    href: "/admin/fhir-sandbox",
+    breadcrumb: "FHIR Validator & Sandbox",
+    roles: ["admin", "fhir_engineer"],
+  },
 ];
 
 const ROLE_NAME: Record<string, string> = {
   admin: "Administrator",
   project_manager: "Project Manager",
+  fhir_engineer: "FHIR Engineer",
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

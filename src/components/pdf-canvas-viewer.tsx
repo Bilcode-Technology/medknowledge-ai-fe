@@ -62,7 +62,7 @@ export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError 
         if (!canvas || !context) return;
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        currentRenderTask = page.render({ canvasContext: context, viewport });
+        currentRenderTask = page.render({ canvas, canvasContext: context, viewport });
         await currentRenderTask.promise;
       } catch (err) {
         // Membatalkan render task yang sedang berjalan (mis. navigasi halaman
