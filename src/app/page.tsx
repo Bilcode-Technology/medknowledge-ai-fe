@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Folder, FileText, Cpu, CheckCircle2, Clock, AlertTriangle, Eye, Plus } from "lucide-react";
 import { ProtectedShell } from "@/components/protected-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,14 +28,48 @@ const STATUS_LABEL: Record<string, string> = {
   reference_check: "Reference Check",
   kfa_mapping: "KFA Mapping",
   ai_draft: "AI Draft",
+  pharmacist_review: "Pharmacist Review",
   request_revision: "Revision Requested",
   senior_review: "Senior Review",
+  arbitration: "Arbitrase",
   published: "Published",
   fhir_sync: "FHIR Synced",
   maintenance: "Maintenance",
   auto_rejected: "Auto Rejected",
   reject_source: "Source Rejected",
 };
+
+// M01 — Kanban read-only: Project.status punya ~15 nilai yang seluruhnya
+// system-driven (AI extraction, decision gates, review) — PUT /projects/{id}
+// bahkan tidak menerima field status sama sekali. Jadi board ini murni
+// visualisasi progres, dikelompokkan ke 4 fase logis (bukan 1 kolom per raw
+// status, yang akan menghasilkan 15 kolom yang tidak usable).
+type PhaseGroup = { key: string; title: string; statuses: string[] };
+
+const PHASE_GROUPS: PhaseGroup[] = [
+  {
+    key: "akuisisi",
+    title: "Akuisisi",
+    statuses: ["draft", "source_upload", "metadata_validation", "reject_source"],
+  },
+  {
+    key: "ekstraksi_keputusan",
+    title: "Ekstraksi & Keputusan",
+    statuses: ["ai_extraction", "reference_check", "auto_rejected", "kfa_mapping", "ai_draft"],
+  },
+  {
+    key: "review",
+    title: "Review",
+    // pharmacist_review jarang muncul di Project row (M30/31 melacak status review
+    // terutama lewat Annotation.status), tapi disertakan untuk kelengkapan.
+    statuses: ["pharmacist_review", "request_revision", "senior_review", "arbitration"],
+  },
+  {
+    key: "selesai",
+    title: "Selesai",
+    statuses: ["published", "fhir_sync", "maintenance"],
+  },
+];
 
 function statusBadge(status: string) {
   if (status === "published" || status === "fhir_sync") {
@@ -82,6 +115,9 @@ export default function DashboardHome() {
   async function loadData() {
     try {
       const [projectsData, accuracyData, verificationData] = await Promise.all([
+        // NOTE: /projects dipaginasi (ProjectController::index -> paginate() tanpa
+        // membaca query per_page dari request), jadi board ini hanya menampilkan
+        // page 1 — tidak ada per_page yang bisa diminta tanpa mengubah backend.
         apiFetch<Paginated<Project>>("/projects"),
         apiFetch<AiDraftAccuracy>("/reports/ai-draft-accuracy"),
         apiFetch<AverageVerificationTime>("/reports/average-verification-time"),
@@ -203,45 +239,47 @@ export default function DashboardHome() {
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent className="px-0">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="px-6 text-xs font-semibold">Nama Proyek</TableHead>
-                <TableHead className="text-xs font-semibold">Prioritas</TableHead>
-                <TableHead className="text-xs font-semibold">Status</TableHead>
-                <TableHead className="px-6 text-xs font-semibold text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects?.data.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell className="px-6">
-                    <span className="font-medium text-xs text-foreground">{project.name}</span>
-                  </TableCell>
-                  <TableCell>{priorityBadge(project.priority)}</TableCell>
-                  <TableCell>{statusBadge(project.status)}</TableCell>
-                  <TableCell className="px-6 text-right">
-                    <Button
-                      render={<Link href={`/projects/${project.id}`} />}
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs text-primary hover:text-foreground"
-                    >
-                      <Eye className="h-3.5 w-3.5 mr-1" /> Lihat
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {projects?.data.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-6">
-                    Belum ada proyek. Buat proyek baru untuk memulai.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <CardContent>
+          {/* Board read-only: 4 kolom fase, masing-masing scroll independen (overflow-y-auto),
+              tanpa drag-and-drop — status hanya berubah lewat side effect sistem (upload, AI job,
+              keputusan review), jadi drag card tidak akan pernah benar-benar memicu perubahan apa pun. */}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {PHASE_GROUPS.map((group) => {
+              const groupProjects = projects?.data.filter((project) => group.statuses.includes(project.status)) ?? [];
+              return (
+                <div key={group.key} className="flex h-[600px] flex-col rounded-xl border border-border bg-muted/20">
+                  <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.title}</h3>
+                    <Badge className="bg-muted text-muted-foreground border-border text-[10px]">{groupProjects.length}</Badge>
+                  </div>
+                  <div className="flex-1 space-y-2 overflow-y-auto p-2.5">
+                    {groupProjects.map((project) => (
+                      <Card key={project.id} className="shadow-sm">
+                        <CardContent className="space-y-2 px-3 py-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-xs font-medium text-foreground">{project.name}</span>
+                            {priorityBadge(project.priority)}
+                          </div>
+                          {statusBadge(project.status)}
+                          <Button
+                            render={<Link href={`/projects/${project.id}`} />}
+                            variant="ghost"
+                            size="xs"
+                            className="-ml-2 text-primary hover:text-foreground"
+                          >
+                            <Eye className="h-3 w-3 mr-1" /> Lihat
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    {groupProjects.length === 0 && (
+                      <p className="py-6 text-center text-[10px] text-muted-foreground">Tidak ada proyek.</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
     </ProtectedShell>
