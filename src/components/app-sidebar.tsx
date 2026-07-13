@@ -57,16 +57,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuItem key={item.title}>
                 <div className="px-2">
                   <SidebarMenuButton
-                    asChild
+                    render={<Link href={item.url} />}
                     tooltip={item.title}
                     className={`hover:bg-slate-900 hover:text-white ${
                       isActive ? "bg-slate-900! text-teal-400 font-semibold border-l-2 border-teal-500" : ""
                     }`}
                   >
-                    <Link href={item.url}>
-                      <item.icon className={`h-4 w-4 ${isActive ? "text-teal-400" : "text-slate-400"}`} />
-                      <span className="text-sm">{item.title}</span>
-                    </Link>
+                    <item.icon className={`h-4 w-4 ${isActive ? "text-teal-400" : "text-slate-400"}`} />
+                    <span className="text-sm">{item.title}</span>
                   </SidebarMenuButton>
                 </div>
               </SidebarMenuItem>

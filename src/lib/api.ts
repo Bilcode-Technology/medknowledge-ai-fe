@@ -32,11 +32,15 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = getToken();
 
+  // FormData (upload file) butuh browser yang set Content-Type + boundary
+  // sendiri — jangan di-override manual jadi application/json.
+  const isFormData = options.body instanceof FormData;
+
   const response = await fetch(`/api${path}`, {
     ...options,
     headers: {
       Accept: "application/json",
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.body && !isFormData ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },

@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const token = getToken();
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- inisialisasi sesi saat mount, bukan derivasi sinkron dari props
       setIsLoading(false);
       return;
     }
