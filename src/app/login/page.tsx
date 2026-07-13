@@ -32,52 +32,46 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
-      <Card className="w-full max-w-sm bg-slate-900/60 border-slate-800">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-sm">
         <CardHeader className="items-center text-center space-y-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-500 text-slate-950 shadow-[0_0_15px_rgba(20,184,166,0.5)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[0_0_15px_oklch(0.72_0.11_195_/_0.35)]">
             <Cpu className="h-5 w-5" />
           </div>
           <div>
-            <CardTitle className="text-white">MedKnowledge AI</CardTitle>
-            <CardDescription className="text-slate-400">Clinical Knowledge Governance Platform</CardDescription>
+            <CardTitle>MedKnowledge AI</CardTitle>
+            <CardDescription>Clinical Knowledge Governance Platform</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <Alert className="bg-rose-500/10 border-rose-500/20">
-                <AlertDescription className="text-xs text-rose-400">{error}</AlertDescription>
+              <Alert variant="destructive">
+                <AlertDescription className="text-xs">{error}</AlertDescription>
               </Alert>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-slate-300">Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-slate-100"
                 placeholder="nama@medknowledge.ai"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-slate-300">Password</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-slate-100"
               />
             </div>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold"
-            >
+            <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Memproses..." : "Masuk"}
             </Button>
           </form>

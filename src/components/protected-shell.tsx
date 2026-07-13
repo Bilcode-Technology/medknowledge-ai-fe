@@ -27,7 +27,7 @@ export function ProtectedShell({
 
   if (isLoading || !user) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-slate-950 text-slate-400 text-sm">
+      <div className="flex h-screen w-screen items-center justify-center bg-background text-muted-foreground text-sm">
         Memuat...
       </div>
     );
@@ -35,16 +35,16 @@ export function ProtectedShell({
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans">
+      <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground font-sans">
         <AppSidebar />
-        <SidebarInset className="flex flex-col flex-1 overflow-y-auto bg-slate-950 border-slate-900">
-          <header className="flex h-16 items-center gap-4 border-b border-slate-900 px-6 sticky top-0 bg-slate-950/80 backdrop-blur-md z-40">
-            <SidebarTrigger className="text-slate-400 hover:text-white" />
-            <div className="h-4 w-px bg-slate-800" />
-            <div className="flex items-center gap-1.5 text-sm text-slate-400">
+        <SidebarInset className="flex flex-col flex-1 overflow-y-auto bg-background">
+          <header className="flex h-16 items-center gap-4 border-b border-border px-6 sticky top-0 bg-background/80 backdrop-blur-md z-40">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+            <div className="h-4 w-px bg-border" />
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <span>Clinical Governance</span>
-              <span className="text-slate-700">/</span>
-              <span className="text-slate-200 font-medium">{breadcrumb}</span>
+              <span className="text-muted-foreground/50">/</span>
+              <span className="text-foreground font-medium">{breadcrumb}</span>
             </div>
           </header>
           <main className="flex-1 p-6 space-y-6 max-w-7xl">{children}</main>

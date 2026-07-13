@@ -36,15 +36,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     .toUpperCase();
 
   return (
-    <Sidebar collapsible="icon" className="border-slate-800 bg-slate-950 text-slate-200" {...props}>
-      <SidebarHeader className="border-b border-slate-800 p-4">
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500 text-slate-950 shadow-[0_0_15px_rgba(20,184,166,0.5)]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[0_0_15px_oklch(0.72_0.11_195_/_0.35)]">
             <Cpu className="h-5 w-5" />
           </div>
           <div className="flex flex-col gap-0.5 overflow-hidden">
-            <span className="font-semibold text-sm leading-none text-white tracking-wide">MedKnowledge AI</span>
-            <span className="text-[10px] text-teal-400 font-medium tracking-wider uppercase">Clinical Gov</span>
+            <span className="font-semibold text-sm leading-none text-sidebar-foreground tracking-wide">MedKnowledge AI</span>
+            <span className="text-[10px] text-primary font-medium tracking-wider uppercase">Clinical Gov</span>
           </div>
         </div>
       </SidebarHeader>
@@ -59,11 +59,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton
                     render={<Link href={item.url} />}
                     tooltip={item.title}
-                    className={`hover:bg-slate-900 hover:text-white ${
-                      isActive ? "bg-slate-900! text-teal-400 font-semibold border-l-2 border-teal-500" : ""
-                    }`}
+                    isActive={isActive}
+                    className={isActive ? "font-semibold border-l-2 border-primary" : ""}
                   >
-                    <item.icon className={`h-4 w-4 ${isActive ? "text-teal-400" : "text-slate-400"}`} />
+                    <item.icon className={`h-4 w-4 ${isActive ? "text-primary" : "text-sidebar-foreground/60"}`} />
                     <span className="text-sm">{item.title}</span>
                   </SidebarMenuButton>
                 </div>
@@ -73,20 +72,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-slate-800 p-4">
+      <SidebarFooter className="border-t border-sidebar-border p-4">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border border-slate-700">
-            <AvatarFallback className="bg-slate-800 text-teal-400 font-bold text-xs">
+          <Avatar className="h-9 w-9 border border-sidebar-border">
+            <AvatarFallback className="bg-sidebar-accent text-primary font-bold text-xs">
               {initials ?? "?"}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-0.5 overflow-hidden">
-            <span className="font-semibold text-xs leading-none text-white">{user?.name ?? "..."}</span>
-            <span className="text-[9px] text-slate-400">{user?.role?.name ?? ""}</span>
+            <span className="font-semibold text-xs leading-none text-sidebar-foreground">{user?.name ?? "..."}</span>
+            <span className="text-[9px] text-sidebar-foreground/60">{user?.role?.name ?? ""}</span>
           </div>
           <button
             onClick={() => logout()}
-            className="ml-auto p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-900 transition-colors"
+            className="ml-auto p-1.5 rounded-lg text-sidebar-foreground/60 hover:text-destructive hover:bg-sidebar-accent transition-colors"
           >
             <LogOut className="h-4 w-4" />
           </button>

@@ -11,10 +11,10 @@ import { sanitizeHtml } from "@/lib/sanitize";
 import type { Annotation, Paginated } from "@/lib/types";
 
 const SEVERITY_STYLE: Record<string, string> = {
-  contraindicated: "bg-red-500/10 text-red-400 border-red-500/20",
-  major: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  moderate: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  minor: "bg-slate-800 text-slate-300 border-slate-700",
+  contraindicated: "bg-destructive/10 text-destructive border-destructive/20",
+  major: "bg-warning/15 text-warning border-warning/25",
+  moderate: "bg-warning/10 text-warning border-warning/20",
+  minor: "bg-muted text-muted-foreground border-border",
 };
 
 export default function KnowledgeRepositoryPage() {
@@ -38,33 +38,33 @@ export default function KnowledgeRepositoryPage() {
 
   return (
     <ProtectedShell breadcrumb="Knowledge Repository">
-      <Card className="bg-slate-950/70 border-slate-900">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-base text-white flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-teal-400" /> Knowledge Repository (M35)
+          <CardTitle className="text-base flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-primary" /> Knowledge Repository (M35)
           </CardTitle>
-          <CardDescription className="text-xs text-slate-400">
+          <CardDescription className="text-xs">
             Katalog interaksi obat yang sudah published &amp; tersinkron FHIR, lintas seluruh proyek.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative w-80">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Cari nama obat..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-9 bg-slate-900 border-slate-800 text-xs"
+              className="pl-9 h-9 text-xs"
             />
           </div>
 
-          {error && <p className="text-xs text-rose-400">{error}</p>}
+          {error && <p className="text-xs text-destructive">{error}</p>}
 
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="divide-y divide-border">
             {annotations.map((annotation) => (
-              <div key={annotation.id} className="rounded-lg border border-slate-900 bg-slate-900/40 p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white">
+              <div key={annotation.id} className="py-4 first:pt-0 last:pb-0 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-foreground">
                     {annotation.extraction.drug_a?.canonical_name} × {annotation.extraction.drug_b?.canonical_name}
                   </span>
                   {annotation.extraction.severity_schema && (
@@ -73,15 +73,15 @@ export default function KnowledgeRepositoryPage() {
                     </Badge>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500">{annotation.project.name}</p>
+                <p className="text-[11px] text-muted-foreground">{annotation.project.name}</p>
                 <div
-                  className="text-xs text-slate-300 line-clamp-3 [&_p]:mb-1"
+                  className="text-xs text-muted-foreground line-clamp-3 [&_p]:mb-1"
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(annotation.content) }}
                 />
               </div>
             ))}
             {annotations.length === 0 && !error && (
-              <p className="text-xs text-slate-500 col-span-2 text-center py-8">
+              <p className="text-xs text-muted-foreground text-center py-8">
                 Belum ada interaksi published yang cocok dengan pencarian.
               </p>
             )}
