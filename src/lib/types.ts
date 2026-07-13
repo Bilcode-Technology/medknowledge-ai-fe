@@ -158,3 +158,54 @@ export type EnterpriseSearchResult = {
   score: number;
   data: Record<string, unknown>;
 };
+
+// M49 — Administrator Panel & RBAC.
+export type Role = { id: number; code: string; name: string };
+
+export type AdminUser = {
+  id: number;
+  name: string;
+  email: string;
+  is_active: boolean;
+  role: Role | null;
+  created_at: string;
+};
+
+// M03 — Disease/Drug Category Taxonomy (hierarkis via parent_id).
+export type Category = {
+  id: number;
+  name: string;
+  parent_id: number | null;
+  parent?: Category | null;
+};
+
+// M08 — Global Reference Standards Registry.
+export type ReferenceStandard = {
+  id: number;
+  name: string;
+  version: string;
+  source_url: string | null;
+  description: string | null;
+  published_at: string | null;
+};
+
+// M48 — AI Engine Playground & Cost Monitor.
+export type PlaygroundModel = { id: string; object: string; owned_by: string };
+
+export type PlaygroundChatResponse = {
+  id: number;
+  model: string;
+  prompt: string;
+  response_content: string;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  total_tokens: number | null;
+  cost_usd: string | null;
+};
+
+export type CostSummaryRow = {
+  model: string;
+  call_count: number;
+  total_tokens: number | null;
+  total_cost_usd: string | null;
+};
