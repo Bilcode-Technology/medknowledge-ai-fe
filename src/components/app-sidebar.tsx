@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Bell, BookOpen, Cpu, LogOut } from "lucide-react";
+import { Activity, BarChart3, Bell, BookOpen, Cpu, LogOut, Search } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,8 @@ import { useAuth } from "@/lib/auth-context";
 const menuItems = [
   { title: "Dashboard", icon: Activity, url: "/" },
   { title: "Knowledge Repository", icon: BookOpen, url: "/knowledge-repository" },
+  { title: "Reports", icon: BarChart3, url: "/reports" },
+  { title: "Search", icon: Search, url: "/search" },
   { title: "Notification Settings", icon: Bell, url: "/settings/notifications" },
 ];
 

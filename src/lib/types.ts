@@ -144,3 +144,17 @@ export type ReviewerThroughput = {
   review_count: number;
   reviewer: { id: number; name: string };
 };
+
+// M36 — GET /knowledge-repository/semantic-search?q=...
+export type SemanticSearchResult = {
+  annotation: Annotation;
+  score: number;
+};
+
+// M47 — GET /enterprise-search?q=... (keyword Elasticsearch + semantic Qdrant, lintas entitas).
+export type EnterpriseSearchResult = {
+  entity_type: "annotation" | "drug_entity";
+  source: "keyword" | "semantic";
+  score: number;
+  data: Record<string, unknown>;
+};
