@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, BarChart3, Bell, BookOpen, Cpu, LogOut, Search } from "lucide-react";
+import { Activity, BarChart3, Bell, BookOpen, Cpu, LogOut, Search, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +25,7 @@ const menuItems = [
   { title: "Reports", icon: BarChart3, url: "/reports" },
   { title: "Search", icon: Search, url: "/search" },
   { title: "Notification Settings", icon: Bell, url: "/settings/notifications" },
+  { title: "Admin", icon: Settings, url: "/admin/users" },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

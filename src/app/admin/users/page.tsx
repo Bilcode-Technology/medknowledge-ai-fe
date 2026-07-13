@@ -72,7 +72,6 @@ export default function AdminUsersPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- role milik akun sendiri selalu jadi sumber id yang diketahui
     mergeRoleId(currentUser?.role?.code, currentUser?.role?.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   async function handleCreate(event: React.FormEvent) {
