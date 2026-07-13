@@ -386,7 +386,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <CardDescription className="text-xs">{annotation.project.name}</CardDescription>
+              <CardDescription className="text-xs">{annotation.project?.name ?? "-"}</CardDescription>
               <CardTitle className="text-lg">{drugPairLabel}</CardTitle>
             </div>
             {annotationStatusBadge(annotation.status)}
