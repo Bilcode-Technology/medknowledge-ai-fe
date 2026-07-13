@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
-import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
+import type { PDFDocumentProxy, PDFPageProxy, PageViewport, RenderTask } from "pdfjs-dist";
+import { computeHighlightRects, type HighlightRectPercent } from "@/lib/pdf-highlight";
 
 // M15 — render PDF.js murni (bukan wrapper react-pdf, sesuai pilihan tech
 // workbook). Worker di-load dari CDN cdnjs, dipin persis ke versi pdfjs-dist
@@ -16,12 +17,22 @@ type PdfCanvasViewerProps = {
   pageNumber: number;
   onNumPages: (numPages: number) => void;
   onError: (message: string) => void;
+  // M16 — kalau diisi, cari teks ini di text-layer halaman yang sedang
+  // ditampilkan dan gambar kotak highlight di atasnya. null/undefined berarti
+  // tidak ada highlight aktif.
+  highlightText?: string | null;
 };
 
-export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError }: PdfCanvasViewerProps) {
+export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError, highlightText }: PdfCanvasViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [isRendering, setIsRendering] = useState(false);
+  // Halaman + viewport yang sedang tampil di kanvas — disimpan terpisah dari
+  // efek render supaya pencarian highlight (getTextContent) tidak perlu
+  // nge-render ulang kanvas setiap kali highlightText berganti pada halaman
+  // yang sama (mis. klik ekstraksi lain di halaman yang sama).
+  const [renderedPage, setRenderedPage] = useState<{ page: PDFPageProxy; viewport: PageViewport } | null>(null);
+  const [highlightRects, setHighlightRects] = useState<HighlightRectPercent[]>([]);
 
   // Muat dokumen sekali per perubahan byte PDF.
   useEffect(() => {
@@ -39,6 +50,7 @@ export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError 
     return () => {
       cancelled = true;
       setDoc(null);
+      setRenderedPage(null);
       loadingTask.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,6 +76,10 @@ export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError 
         canvas.height = viewport.height;
         currentRenderTask = page.render({ canvas, canvasContext: context, viewport });
         await currentRenderTask.promise;
+        if (cancelled) return;
+        // Simpan page+viewport supaya efek highlight di bawah bisa memanggil
+        // getTextContent() tanpa perlu me-render ulang kanvas.
+        setRenderedPage({ page, viewport });
       } catch (err) {
         // Membatalkan render task yang sedang berjalan (mis. navigasi halaman
         // cepat) memicu RenderingCancelledException — itu bukan error nyata.
@@ -84,6 +100,39 @@ export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc, pageNumber]);
 
+  // M16 — cari citation_text di text-layer halaman yang sedang tampil begitu
+  // renderedPage siap atau highlightText berganti (mis. user klik ekstraksi
+  // lain di halaman yang sama). getTextContent() dipanggil di sini, terpisah
+  // dari efek render kanvas di atas, supaya ganti highlight tidak memicu
+  // render ulang kanvas.
+  useEffect(() => {
+    if (!renderedPage || !highlightText) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- bersihkan highlight lama saat halaman/teks target hilang, bukan derivasi sinkron dari props
+      setHighlightRects([]);
+      return;
+    }
+    let cancelled = false;
+
+    renderedPage.page
+      .getTextContent()
+      .then((textContent) => {
+        if (cancelled) return;
+        const items = textContent.items.filter(
+          (item): item is Extract<typeof item, { str: string }> => "str" in item,
+        );
+        setHighlightRects(computeHighlightRects(items, renderedPage.viewport, highlightText));
+      })
+      .catch(() => {
+        // getTextContent gagal (mis. halaman rusak) — jangan sampai
+        // menjatuhkan seluruh viewer hanya karena highlight tidak bisa dicari.
+        if (!cancelled) setHighlightRects([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [renderedPage, highlightText]);
+
   return (
     <div className="relative flex justify-center py-2">
       {isRendering && (
@@ -91,7 +140,25 @@ export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError 
           Merender halaman...
         </div>
       )}
-      <canvas ref={canvasRef} className="max-w-full border border-border shadow-sm bg-white" />
+      <div className="relative inline-block leading-none">
+        <canvas ref={canvasRef} className="max-w-full border border-border shadow-sm bg-white" />
+        {highlightRects.length > 0 && (
+          <div className="pointer-events-none absolute inset-0">
+            {highlightRects.map((rect, idx) => (
+              <div
+                key={idx}
+                className="absolute rounded-[2px] bg-yellow-300/40 ring-1 ring-yellow-500/70"
+                style={{
+                  left: `${rect.leftPct}%`,
+                  top: `${rect.topPct}%`,
+                  width: `${rect.widthPct}%`,
+                  height: `${rect.heightPct}%`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

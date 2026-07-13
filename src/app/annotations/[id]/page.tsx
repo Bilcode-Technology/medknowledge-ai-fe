@@ -8,6 +8,7 @@ import {
   Clock,
   FileClock,
   FileText,
+  GitCompareArrows,
   History,
   MessageSquare,
   Pencil,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { ProtectedShell } from "@/components/protected-shell";
 import { AnnotationEditor } from "@/components/annotation-editor";
+import { VersionDiffView } from "@/components/version-diff-view";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiFetch, ApiError } from "@/lib/api";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { useAuth } from "@/lib/auth-context";
@@ -161,6 +164,12 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
   // Riwayat versi
   const [rollingVersionId, setRollingVersionId] = useState<number | null>(null);
 
+  // M28 "Track Changes" — diff word-level antar dua versi (bukan live
+  // collaborative editing, lihat catatan di kartu Riwayat Versi & VersionDiffView).
+  const [compareFromVersionNumber, setCompareFromVersionNumber] = useState<string | null>(null);
+  const [compareToVersionNumber, setCompareToVersionNumber] = useState<string | null>(null);
+  const [isDiffDialogOpen, setDiffDialogOpen] = useState(false);
+
   // Komentar (M28)
   const [newCommentText, setNewCommentText] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
@@ -214,6 +223,25 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
   const isSeniorTurn = user?.role?.code === "senior_reviewer" && annotation.status === "senior_review";
   const noActionForUser = !isPharmacistTurn && !isSeniorTurn && !isArbiterTurn;
   const note = pendingRoleNote(annotation.status);
+
+  // M28 — setiap update()/rollback() backend (AnnotationController) selalu membuat
+  // AnnotationVersion baru DAN menyamakan current_version_number ke versi itu, jadi
+  // annotation.content selalu identik dengan content_snapshot versi current_version_number.
+  // contentForVersionNumber tetap fallback ke annotation.content untuk versi current
+  // seandainya baris versi itu tidak ikut ter-load, tapi ini harusnya tidak pernah terjadi.
+  const sortedVersions = [...(annotation.versions ?? [])].sort((a, b) => b.version_number - a.version_number);
+
+  function contentForVersionNumber(versionNumber: number): string {
+    const found = sortedVersions.find((v) => v.version_number === versionNumber);
+    if (found) return found.content_snapshot;
+    if (versionNumber === annotation!.current_version_number) return annotation!.content;
+    return "";
+  }
+
+  const canCompareVersions =
+    compareFromVersionNumber !== null &&
+    compareToVersionNumber !== null &&
+    compareFromVersionNumber !== compareToVersionNumber;
 
   function startEditing() {
     setDraftContent(annotation!.content);
@@ -702,38 +730,101 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
           <CardTitle className="text-sm flex items-center gap-2">
             <FileClock className="h-4 w-4 text-info" /> Riwayat Versi
           </CardTitle>
+          <CardDescription className="text-xs">
+            Implementasi M28 &quot;Track Changes&quot;: diff kata-per-kata antar dua versi, bukan live collaborative editing.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          {[...(annotation.versions ?? [])]
-            .sort((a, b) => b.version_number - a.version_number)
-            .map((version) => (
-              <div key={version.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
-                <div className="space-y-0.5">
-                  <span className="text-xs font-medium">
-                    v{version.version_number} — {versionAuthorLabel(version.changed_by)}
-                  </span>
-                  {version.change_summary && <p className="text-[10px] text-muted-foreground">{version.change_summary}</p>}
-                  <p className="text-[10px] text-muted-foreground">{new Date(version.created_at).toLocaleString()}</p>
-                </div>
-                {version.version_number !== annotation.current_version_number && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1 shrink-0"
-                    disabled={rollingVersionId === version.id}
-                    onClick={() => handleRollback(version.id)}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    {rollingVersionId === version.id ? "Rollback..." : "Rollback ke versi ini"}
-                  </Button>
-                )}
+          {sortedVersions.length >= 2 && (
+            <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-muted/20 p-3">
+              <div className="space-y-1">
+                <Label className="text-[10px]">Bandingkan versi</Label>
+                <Select value={compareFromVersionNumber ?? undefined} onValueChange={setCompareFromVersionNumber}>
+                  <SelectTrigger size="sm" className="w-36">
+                    <SelectValue placeholder="Versi lama" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortedVersions.map((version) => (
+                      <SelectItem key={version.id} value={String(version.version_number)}>
+                        v{version.version_number}
+                        {version.version_number === annotation.current_version_number ? " (saat ini)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            ))}
-          {(annotation.versions ?? []).length === 0 && (
-            <p className="text-xs text-muted-foreground">Belum ada riwayat versi.</p>
+              <div className="space-y-1">
+                <Label className="text-[10px]">dengan</Label>
+                <Select value={compareToVersionNumber ?? undefined} onValueChange={setCompareToVersionNumber}>
+                  <SelectTrigger size="sm" className="w-36">
+                    <SelectValue placeholder="Versi baru" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortedVersions.map((version) => (
+                      <SelectItem key={version.id} value={String(version.version_number)}>
+                        v{version.version_number}
+                        {version.version_number === annotation.current_version_number ? " (saat ini)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                disabled={!canCompareVersions}
+                onClick={() => setDiffDialogOpen(true)}
+              >
+                <GitCompareArrows className="h-3.5 w-3.5" /> Bandingkan
+              </Button>
+            </div>
           )}
+          {sortedVersions.map((version) => (
+            <div key={version.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+              <div className="space-y-0.5">
+                <span className="text-xs font-medium">
+                  v{version.version_number} — {versionAuthorLabel(version.changed_by)}
+                </span>
+                {version.change_summary && <p className="text-[10px] text-muted-foreground">{version.change_summary}</p>}
+                <p className="text-[10px] text-muted-foreground">{new Date(version.created_at).toLocaleString()}</p>
+              </div>
+              {version.version_number !== annotation.current_version_number && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 shrink-0"
+                  disabled={rollingVersionId === version.id}
+                  onClick={() => handleRollback(version.id)}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  {rollingVersionId === version.id ? "Rollback..." : "Rollback ke versi ini"}
+                </Button>
+              )}
+            </div>
+          ))}
+          {sortedVersions.length === 0 && <p className="text-xs text-muted-foreground">Belum ada riwayat versi.</p>}
         </CardContent>
       </Card>
+
+      <Dialog open={isDiffDialogOpen} onOpenChange={setDiffDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Perbandingan v{compareFromVersionNumber} → v{compareToVersionNumber}
+            </DialogTitle>
+            <DialogDescription>
+              Teks yang dicoret merah dihapus, teks bergaris bawah hijau ditambahkan.
+            </DialogDescription>
+          </DialogHeader>
+          {canCompareVersions && (
+            <VersionDiffView
+              oldContent={contentForVersionNumber(Number(compareFromVersionNumber))}
+              newContent={contentForVersionNumber(Number(compareToVersionNumber))}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* 6. Komentar (M28) */}
       <Card>

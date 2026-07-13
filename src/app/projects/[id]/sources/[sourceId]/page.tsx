@@ -27,6 +27,12 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
   const [pageNumber, setPageNumber] = useState(1);
   const [isLoadingPdf, setIsLoadingPdf] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // M16 — citation_text ekstraksi yang sedang di-highlight di PDF, plus id
+  // ekstraksinya (buat state visual "terpilih" di daftar kanan). Keduanya
+  // di-reset begitu user pindah halaman lewat tombol Sebelumnya/Berikutnya,
+  // supaya highlight lama tidak nyangkut di halaman yang tidak relevan.
+  const [highlightedCitation, setHighlightedCitation] = useState<string | null>(null);
+  const [highlightedExtractionId, setHighlightedExtractionId] = useState<number | null>(null);
 
   async function loadMetadata() {
     try {
@@ -70,6 +76,28 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
     setPageNumber(page);
   }
 
+  // M16 — klik ekstraksi: lompat ke halamannya SEKALIGUS set teks yang mau
+  // di-highlight. Kalau extraction yang sama diklik lagi di halaman yang
+  // sama, effect pencarian highlight di PdfCanvasViewer tetap jalan ulang
+  // karena identitas string highlightText tidak berubah referensinya secara
+  // otomatis dianggap "sama" oleh React — itu perilaku yang diinginkan, tidak
+  // perlu redundant re-search.
+  function handleSelectExtraction(extraction: Extraction) {
+    if (!extraction.page_number) return;
+    jumpToPage(extraction.page_number);
+    setHighlightedCitation(extraction.citation_text ?? null);
+    setHighlightedExtractionId(extraction.id);
+  }
+
+  // Navigasi manual (tombol Sebelumnya/Berikutnya) tidak terikat ke ekstraksi
+  // manapun — bersihkan highlight supaya tidak nyangkut di halaman yang tidak
+  // relevan dengan citation_text sebelumnya.
+  function goToPage(next: number) {
+    setPageNumber(next);
+    setHighlightedCitation(null);
+    setHighlightedExtractionId(null);
+  }
+
   const documentTitle = source?.title ?? source?.original_filename ?? "Dokumen Sumber";
 
   return (
@@ -90,7 +118,13 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
           <CardContent className="flex-1 overflow-y-auto">
             {isLoadingPdf && <p className="text-xs text-muted-foreground text-center py-10">Memuat berkas PDF...</p>}
             {!isLoadingPdf && pdfData && (
-              <PdfCanvasViewer data={pdfData} pageNumber={pageNumber} onNumPages={setNumPages} onError={setError} />
+              <PdfCanvasViewer
+                data={pdfData}
+                pageNumber={pageNumber}
+                onNumPages={setNumPages}
+                onError={setError}
+                highlightText={highlightedCitation}
+              />
             )}
             {!isLoadingPdf && !pdfData && !error && (
               <p className="text-xs text-muted-foreground text-center py-10">Berkas PDF tidak tersedia.</p>
@@ -100,7 +134,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
+              onClick={() => goToPage(Math.max(1, pageNumber - 1))}
               disabled={pageNumber <= 1}
               className="gap-1"
             >
@@ -112,7 +146,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setPageNumber((p) => Math.min(numPages || p, p + 1))}
+              onClick={() => goToPage(Math.min(numPages || pageNumber, pageNumber + 1))}
               disabled={pageNumber >= numPages}
               className="gap-1"
             >
@@ -128,8 +162,10 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
               <Quote className="h-4 w-4 text-info" /> Bukti Ekstraksi (M16)
             </CardTitle>
             <CardDescription className="text-xs">
-              Klik sebuah ekstraksi untuk lompat ke halamannya di PDF. Catatan: lompatan ini hanya ke level halaman —
-              menyorot posisi kalimat sitasi persis butuh pemetaan koordinat text-layer PDF.js yang belum diimplementasikan.
+              Klik sebuah ekstraksi untuk lompat ke halamannya di PDF sekaligus menyorot posisi kalimat sitasinya
+              (dipetakan lewat koordinat text-layer PDF.js, M16). Catatan: OCR (M10) dan text-layer asli PDF adalah dua
+              hasil ekstraksi teks yang independen dari dokumen yang sama — kalau keduanya cukup berbeda, pencocokan
+              teks bisa meleset dan highlight tidak muncul (lompatan halaman tetap jalan seperti biasa).
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto space-y-3">
@@ -137,9 +173,11 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
               <button
                 key={extraction.id}
                 type="button"
-                onClick={() => jumpToPage(extraction.page_number)}
+                onClick={() => handleSelectExtraction(extraction)}
                 disabled={!extraction.page_number}
-                className="w-full text-left rounded-lg border border-border p-3 transition-colors hover:border-primary/40 hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-60 space-y-1.5"
+                className={`w-full text-left rounded-lg border p-3 transition-colors hover:border-primary/40 hover:bg-muted/30 disabled:cursor-not-allowed disabled:opacity-60 space-y-1.5 ${
+                  extraction.id === highlightedExtractionId ? "border-primary/50 bg-primary/5" : "border-border"
+                }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-medium text-foreground">
