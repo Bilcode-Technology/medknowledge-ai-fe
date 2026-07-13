@@ -121,6 +121,17 @@ export type ArbitrationDiff = {
   dispute_notes: string | null;
 };
 
+// M46 — Notification Engine (in-app bell + preferensi channel).
+export type NotificationItem = {
+  id: string;
+  type: string;
+  data: { message: string; [key: string]: unknown };
+  read_at: string | null;
+  created_at: string;
+};
+
+export type NotificationPreferences = { email: boolean; whatsapp: boolean };
+
 // M45 report shapes
 export type AverageVerificationTime = { sample_size: number; average_hours: number | null };
 export type AiDraftAccuracy = {

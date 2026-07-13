@@ -118,6 +118,19 @@ function emptyChecklist(): Record<string, boolean> {
   return Object.fromEntries(REQUIRED_CHECKLIST_KEYS.map((key) => [key, false]));
 }
 
+// GET /annotations/{id} hanya eager-load relasi "versions" (bukan "versions.changedBy"),
+// jadi field changed_by yang benar-benar dikirim backend adalah id user mentah (angka)
+// atau null — bukan objek {id, name} seperti tipe Annotation di lib/types.ts. Tangani
+// kedua bentuk secara defensif supaya tidak salah menampilkan "AI" untuk versi yang
+// sebenarnya diedit manusia.
+function versionAuthorLabel(changedBy: unknown): string {
+  if (!changedBy) return "AI";
+  if (typeof changedBy === "object" && "name" in (changedBy as Record<string, unknown>)) {
+    return String((changedBy as { name: unknown }).name);
+  }
+  return `Pengguna #${changedBy}`;
+}
+
 export default function AnnotationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { user } = useAuth();
@@ -697,7 +710,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
               <div key={version.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
                 <div className="space-y-0.5">
                   <span className="text-xs font-medium">
-                    v{version.version_number} — {version.changed_by?.name ?? "AI"}
+                    v{version.version_number} — {versionAuthorLabel(version.changed_by)}
                   </span>
                   {version.change_summary && <p className="text-[10px] text-muted-foreground">{version.change_summary}</p>}
                   <p className="text-[10px] text-muted-foreground">{new Date(version.created_at).toLocaleString()}</p>
