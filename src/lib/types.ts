@@ -53,15 +53,72 @@ export type Extraction = {
   severity_schema: { id: number; code: string } | null;
   evidence_grade: { id: number; code: string } | null;
   source?: Source;
+  annotation?: { id: number; status: string } | null;
+};
+
+export type AnnotationVersion = {
+  id: number;
+  version_number: number;
+  content_snapshot: string;
+  change_summary: string | null;
+  changed_by: { id: number; name: string } | null;
+  created_at: string;
+};
+
+export type Review = {
+  id: number;
+  review_role: string;
+  decision: "approved" | "revision_requested" | "rejected" | "disputed";
+  checklist_results: Record<string, boolean> | null;
+  notes: string | null;
+  decided_at: string;
+  reviewer: { id: number; name: string };
+};
+
+export type Comment = {
+  id: number;
+  content: string;
+  resolved: boolean;
+  created_at: string;
+  user: { id: number; name: string };
+  replies: Comment[];
 };
 
 export type Annotation = {
   id: number;
   status: string;
   content: string;
+  current_version_number: number;
   updated_at: string;
   project: Project;
   extraction: Extraction;
+  versions?: AnnotationVersion[];
+  reviews?: Review[];
+  comments?: Comment[];
+};
+
+// M29 — 4 poin wajib checklist verifikasi Pharmacist sebelum bisa approve (lihat
+// ReviewController::REQUIRED_CHECKLIST_KEYS di backend — urutan & key HARUS sama persis).
+export const REQUIRED_CHECKLIST_KEYS = [
+  "interaction_confirmed_in_source",
+  "no_missed_interactions",
+  "severity_evidence_finalized",
+  "citation_validated",
+] as const;
+
+export const CHECKLIST_LABELS: Record<(typeof REQUIRED_CHECKLIST_KEYS)[number], string> = {
+  interaction_confirmed_in_source: "Interaksi terkonfirmasi ada di sumber (guard false positive)",
+  no_missed_interactions: "Tidak ada interaksi yang terlewat (guard false negative)",
+  severity_evidence_finalized: "Severity & evidence grade sudah final",
+  citation_validated: "Sitasi sudah tervalidasi",
+};
+
+// M32 — Diff Viewer: respons GET /annotations/{id}/arbitration.
+export type ArbitrationDiff = {
+  original_content: string;
+  proposed_content: string | null;
+  proposed_by: { id: number; name: string } | null;
+  dispute_notes: string | null;
 };
 
 // M45 report shapes

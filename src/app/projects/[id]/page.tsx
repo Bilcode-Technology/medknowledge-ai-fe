@@ -1,7 +1,8 @@
 "use client";
 
 import { use, useEffect, useRef, useState } from "react";
-import { FileUp, FlaskConical, CheckCircle2, XCircle, Clock } from "lucide-react";
+import Link from "next/link";
+import { FileUp, FlaskConical, CheckCircle2, XCircle, Clock, AlertTriangle, Eye } from "lucide-react";
 import { ProtectedShell } from "@/components/protected-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -43,6 +44,40 @@ function extractionStatusBadge(status: string) {
   return (
     <Badge className="bg-muted text-muted-foreground border-border text-[10px] flex items-center gap-1 w-fit">
       <Clock className="h-3 w-3" /> Pending
+    </Badge>
+  );
+}
+
+const ANNOTATION_STATUS_LABEL: Record<string, string> = {
+  draft: "Draft",
+  revision_requested: "Revisi Diminta",
+  senior_review: "Senior Review",
+  disputed: "Disengketakan",
+  published: "Published",
+};
+
+function annotationStatusBadge(status: string) {
+  if (status === "published")
+    return (
+      <Badge className="bg-success/10 text-success border-success/20 text-[10px] flex items-center gap-1 w-fit">
+        <CheckCircle2 className="h-3 w-3" /> {ANNOTATION_STATUS_LABEL[status] ?? status}
+      </Badge>
+    );
+  if (status === "disputed")
+    return (
+      <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[10px] flex items-center gap-1 w-fit">
+        <AlertTriangle className="h-3 w-3" /> {ANNOTATION_STATUS_LABEL[status] ?? status}
+      </Badge>
+    );
+  if (status === "revision_requested" || status === "senior_review")
+    return (
+      <Badge className="bg-warning/10 text-warning border-warning/20 text-[10px] flex items-center gap-1 w-fit">
+        <AlertTriangle className="h-3 w-3" /> {ANNOTATION_STATUS_LABEL[status] ?? status}
+      </Badge>
+    );
+  return (
+    <Badge className="bg-info/10 text-info border-info/20 text-[10px] flex items-center gap-1 w-fit">
+      <Clock className="h-3 w-3" /> {ANNOTATION_STATUS_LABEL[status] ?? status}
     </Badge>
   );
 }
@@ -202,6 +237,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     <TableHead className="text-xs">Confidence</TableHead>
                     <TableHead className="text-xs">Status Gate</TableHead>
                     <TableHead className="px-6 text-xs">Alasan</TableHead>
+                    <TableHead className="px-6 text-xs text-right">Draf Annotation</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -216,11 +252,28 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       <TableCell className="text-xs text-muted-foreground">{extraction.confidence_score ?? "-"}%</TableCell>
                       <TableCell>{extractionStatusBadge(extraction.status)}</TableCell>
                       <TableCell className="px-6 text-[10px] text-muted-foreground max-w-xs">{extraction.gate_reason}</TableCell>
+                      <TableCell className="px-6 text-right">
+                        {extraction.annotation ? (
+                          <div className="flex items-center justify-end gap-2">
+                            {annotationStatusBadge(extraction.annotation.status)}
+                            <Button
+                              render={<Link href={`/annotations/${extraction.annotation.id}`} />}
+                              variant="ghost"
+                              size="xs"
+                              className="text-primary hover:text-foreground"
+                            >
+                              <Eye className="h-3.5 w-3.5 mr-1" /> Lihat Draf
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {extractions.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-6">
+                      <TableCell colSpan={5} className="text-center text-xs text-muted-foreground py-6">
                         Belum ada hasil ekstraksi. Unggah dan validasi sumber dokumen dulu.
                       </TableCell>
                     </TableRow>
