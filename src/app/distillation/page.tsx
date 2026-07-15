@@ -24,24 +24,24 @@ function runStatusBadge(status: string) {
   if (status === "completed")
     return (
       <Badge className="bg-success/10 text-success border-success/20 text-[10px] flex items-center gap-1 w-fit">
-        <CheckCircle2 className="h-3 w-3" /> Selesai
+        <CheckCircle2 className="h-3 w-3" /> Completed
       </Badge>
     );
   if (status === "failed")
     return (
       <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[10px] flex items-center gap-1 w-fit">
-        <XCircle className="h-3 w-3" /> Gagal
+        <XCircle className="h-3 w-3" /> Failed
       </Badge>
     );
   if (status === "running")
     return (
       <Badge className="bg-info/10 text-info border-info/20 text-[10px] flex items-center gap-1 w-fit">
-        <Loader2 className="h-3 w-3 animate-spin" /> Berjalan
+        <Loader2 className="h-3 w-3 animate-spin" /> Running
       </Badge>
     );
   return (
     <Badge className="bg-muted text-muted-foreground border-border text-[10px] flex items-center gap-1 w-fit">
-      <Clock className="h-3 w-3" /> Antre
+      <Clock className="h-3 w-3" /> Queued
     </Badge>
   );
 }
@@ -73,7 +73,7 @@ function DistillationPageContent() {
         setProjects(res.data);
         if (res.data.length > 0) setProjectId(String(res.data[0].id));
       })
-      .catch(() => setError("Gagal memuat daftar proyek."));
+      .catch(() => setError("Failed to load project list."));
     apiFetch<{ data: PlaygroundModel[] }>("/ai-playground/models")
       .then((res) => setModels(res.data ?? []))
       .catch(() => setModels([])); // non-admin tidak bisa list model — pakai default
@@ -104,32 +104,32 @@ function DistillationPageContent() {
       });
       router.push(`/distillation/${run.id}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memulai distilasi.");
+      setError(err instanceof ApiError ? err.message : "Failed to start distillation.");
       setIsSubmitting(false);
     }
   }
 
   return (
-    <ProtectedShell breadcrumb="Distilasi AI">
+    <ProtectedShell breadcrumb="AI Distillation">
       <div className="space-y-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" /> Distilasi Knowledge AI (M50)
+              <Sparkles className="h-4 w-4 text-primary" /> AI Knowledge Distillation (M50)
             </CardTitle>
             <CardDescription className="text-xs">
-              Pilih satu zat aktif (kode KFA) — AI mendistilasi sendiri semua pasangan interaksi yang ia ketahui, lalu
-              hasilnya jadi kartu 5-field (interactant, effect, management, reference) untuk dikonfirmasi ke validasi apoteker.
+              Pick a single active ingredient (KFA code) — the AI distills all interaction pairs it knows on its own,
+              then the result becomes 5-field cards (interactant, effect, management, reference) to confirm for pharmacist validation.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Proyek</Label>
+                  <Label>Project</Label>
                   <Select value={projectId} onValueChange={(value) => setProjectId((value as string) ?? "")}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih proyek" />
+                      <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
                       {projects.map((project) => (
@@ -141,7 +141,7 @@ function DistillationPageContent() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Model AI</Label>
+                  <Label>AI Model</Label>
                   <Select value={model} onValueChange={(value) => setModel((value as string) ?? "gpt-4o")}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
@@ -157,32 +157,32 @@ function DistillationPageContent() {
                 </div>
                 <div className="md:col-span-2">
                   <KfaIngredientPicker
-                    label="Zat aktif *"
+                    label="Active ingredient *"
                     name={ingredient.name}
                     kfaCode={ingredient.kfa}
                     onChange={(name, kfa) => setIngredient({ name, kfa })}
-                    placeholder="mis. paracetamol"
+                    placeholder="e.g. paracetamol"
                   />
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Lawan interaksi (interactant 2) tidak perlu diisi — AI akan mendistilasi sendiri semua zat yang
-                    diketahui berinteraksi dengan zat aktif ini.
+                    The interacting counterpart (interactant 2) does not need to be entered — the AI will distill all
+                    substances known to interact with this ingredient on its own.
                   </p>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="prompt-override">Prompt kustom (opsional — kosongkan untuk template standar)</Label>
+                <Label htmlFor="prompt-override">Custom prompt (optional — leave blank for the standard template)</Label>
                 <Textarea
                   id="prompt-override"
                   value={promptOverride}
                   onChange={(e) => setPromptOverride(e.target.value)}
-                  placeholder="Biarkan kosong untuk memakai template prompt distilasi standar."
+                  placeholder="Leave blank to use the standard distillation prompt template."
                   rows={3}
                 />
               </div>
               {error && <p className="text-xs text-destructive">{error}</p>}
               <Button type="submit" disabled={isSubmitting || !projectId || !ingredient.name.trim()} className="gap-2">
                 <FlaskConical className="h-4 w-4" />
-                {isSubmitting ? "Memulai..." : "Jalankan Distilasi"}
+                {isSubmitting ? "Starting..." : "Run Distillation"}
               </Button>
             </form>
           </CardContent>
@@ -190,21 +190,21 @@ function DistillationPageContent() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Riwayat Distilasi</CardTitle>
-            <CardDescription className="text-xs">Run distilasi pada proyek terpilih.</CardDescription>
+            <CardTitle className="text-sm">Distillation History</CardTitle>
+            <CardDescription className="text-xs">Distillation runs for the selected project.</CardDescription>
           </CardHeader>
           <CardContent>
             {runs.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Belum ada run distilasi untuk proyek ini.</p>
+              <p className="text-xs text-muted-foreground">No distillation runs for this project yet.</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Zat Aktif</TableHead>
-                    <TableHead>Lawan</TableHead>
+                    <TableHead>Active Ingredient</TableHead>
+                    <TableHead>Counterpart</TableHead>
                     <TableHead>Model</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Oleh</TableHead>
+                    <TableHead>By</TableHead>
                     <TableHead />
                   </TableRow>
                 </TableHeader>
@@ -212,13 +212,13 @@ function DistillationPageContent() {
                   {runs.map((run) => (
                     <TableRow key={run.id}>
                       <TableCell className="text-xs font-medium">{run.ingredient_name}</TableCell>
-                      <TableCell className="text-xs">{run.counterpart_name ?? "semua"}</TableCell>
+                      <TableCell className="text-xs">{run.counterpart_name ?? "all"}</TableCell>
                       <TableCell className="text-xs font-mono">{run.model}</TableCell>
                       <TableCell>{runStatusBadge(run.status)}</TableCell>
                       <TableCell className="text-xs">{run.user?.name ?? "-"}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" render={<Link href={`/distillation/${run.id}`} />} className="gap-1">
-                          <Eye className="h-3.5 w-3.5" /> Lihat
+                          <Eye className="h-3.5 w-3.5" /> View
                         </Button>
                       </TableCell>
                     </TableRow>

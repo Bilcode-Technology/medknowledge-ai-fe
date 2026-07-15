@@ -31,7 +31,7 @@ const STATUS_LABEL: Record<string, string> = {
   pharmacist_review: "Pharmacist Review",
   request_revision: "Revision Requested",
   senior_review: "Senior Review",
-  arbitration: "Arbitrase",
+  arbitration: "Arbitration",
   published: "Published",
   fhir_sync: "FHIR Synced",
   maintenance: "Maintenance",
@@ -48,13 +48,13 @@ type PhaseGroup = { key: string; title: string; statuses: string[] };
 
 const PHASE_GROUPS: PhaseGroup[] = [
   {
-    key: "akuisisi",
-    title: "Akuisisi",
+    key: "acquisition",
+    title: "Acquisition",
     statuses: ["draft", "source_upload", "metadata_validation", "reject_source"],
   },
   {
-    key: "ekstraksi_keputusan",
-    title: "Ekstraksi & Keputusan",
+    key: "extraction_decision",
+    title: "Extraction & Decision",
     statuses: ["ai_extraction", "reference_check", "auto_rejected", "kfa_mapping", "ai_draft"],
   },
   {
@@ -65,8 +65,8 @@ const PHASE_GROUPS: PhaseGroup[] = [
     statuses: ["pharmacist_review", "request_revision", "senior_review", "arbitration"],
   },
   {
-    key: "selesai",
-    title: "Selesai",
+    key: "done",
+    title: "Done",
     statuses: ["published", "fhir_sync", "maintenance"],
   },
 ];
@@ -126,7 +126,7 @@ export default function DashboardHome() {
       setAccuracy(accuracyData);
       setVerificationTime(verificationData);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat data dashboard.");
+      setError(err instanceof ApiError ? err.message : "Failed to load dashboard data.");
     }
   }
 
@@ -147,7 +147,7 @@ export default function DashboardHome() {
       setDialogOpen(false);
       await loadData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal membuat proyek.");
+      setError(err instanceof ApiError ? err.message : "Failed to create project.");
     } finally {
       setIsCreating(false);
     }
@@ -164,7 +164,7 @@ export default function DashboardHome() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Proyek</CardTitle>
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Projects</CardTitle>
             <Folder className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -174,7 +174,7 @@ export default function DashboardHome() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Akurasi Draf AI</CardTitle>
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Draft Accuracy</CardTitle>
             <Cpu className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
@@ -182,21 +182,21 @@ export default function DashboardHome() {
               {accuracy?.accuracy_rate_percent != null ? `${accuracy.accuracy_rate_percent}%` : "-"}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {accuracy ? `${accuracy.approved_first_pass}/${accuracy.total_pharmacist_reviews} disetujui first-pass` : ""}
+              {accuracy ? `${accuracy.approved_first_pass}/${accuracy.total_pharmacist_reviews} approved first-pass` : ""}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rata-rata Waktu Verifikasi</CardTitle>
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg. Verification Time</CardTitle>
             <FileText className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {verificationTime?.average_hours != null ? `${verificationTime.average_hours} jam` : "-"}
+              {verificationTime?.average_hours != null ? `${verificationTime.average_hours} hrs` : "-"}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">{verificationTime ? `${verificationTime.sample_size} sampel` : ""}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{verificationTime ? `${verificationTime.sample_size} samples` : ""}</p>
           </CardContent>
         </Card>
       </div>
@@ -205,34 +205,34 @@ export default function DashboardHome() {
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle className="font-semibold">Clinical Knowledge Pipeline</CardTitle>
-            <CardDescription className="text-xs">Proyek yang sedang berjalan di pipeline AI &amp; verifikasi.</CardDescription>
+            <CardDescription className="text-xs">Projects currently in the AI &amp; verification pipeline.</CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger
               render={
                 <Button size="sm" className="gap-1">
-                  <Plus className="h-3.5 w-3.5" /> Proyek Baru
+                  <Plus className="h-3.5 w-3.5" /> New Project
                 </Button>
               }
             />
             <DialogContent>
               <form onSubmit={handleCreateProject}>
                 <DialogHeader>
-                  <DialogTitle>Buat Proyek Baru</DialogTitle>
+                  <DialogTitle>Create New Project</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-1.5 py-3">
-                  <Label htmlFor="project-name">Nama Proyek</Label>
+                  <Label htmlFor="project-name">Project Name</Label>
                   <Input
                     id="project-name"
                     required
                     value={newProjectName}
                     onChange={(e) => setNewProjectName(e.target.value)}
-                    placeholder="mis. Warfarin-Amiodarone Interaction Update"
+                    placeholder="e.g. Warfarin-Amiodarone Interaction Update"
                   />
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isCreating}>
-                    {isCreating ? "Menyimpan..." : "Simpan"}
+                    {isCreating ? "Saving..." : "Save"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -267,13 +267,13 @@ export default function DashboardHome() {
                             size="xs"
                             className="-ml-2 text-primary hover:text-foreground"
                           >
-                            <Eye className="h-3 w-3 mr-1" /> Lihat
+                            <Eye className="h-3 w-3 mr-1" /> View
                           </Button>
                         </CardContent>
                       </Card>
                     ))}
                     {groupProjects.length === 0 && (
-                      <p className="py-6 text-center text-[10px] text-muted-foreground">Tidak ada proyek.</p>
+                      <p className="py-6 text-center text-[10px] text-muted-foreground">No projects.</p>
                     )}
                   </div>
                 </div>

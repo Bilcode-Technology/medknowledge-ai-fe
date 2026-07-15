@@ -30,7 +30,7 @@ export default function FhirSandboxPage() {
     try {
       payload = JSON.parse(payloadText);
     } catch {
-      setError("Payload bukan JSON yang valid — perbaiki dulu sebelum mengirim.");
+      setError("Payload is not valid JSON — fix it before submitting.");
       return;
     }
 
@@ -48,7 +48,7 @@ export default function FhirSandboxPage() {
         // JSON yang berguna untuk debug — tampilkan juga kalau ada.
         if (err.errors) setResult(JSON.stringify(err.errors, null, 2));
       } else {
-        setError("Gagal menghubungi server FHIR.");
+        setError("Failed to reach FHIR server.");
       }
     } finally {
       setIsValidating(false);
@@ -64,11 +64,11 @@ export default function FhirSandboxPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <FlaskConical className="h-4 w-4 text-primary" /> Uji Payload FHIR
+            <FlaskConical className="h-4 w-4 text-primary" /> Test FHIR Payload
           </CardTitle>
           <CardDescription className="text-xs">
-            Mengirim payload ke operasi <code>$validate</code> server HAPI FHIR sungguhan. Berguna untuk debug skema
-            JSON sebelum dipakai di alur produksi (M37–M39).
+            Sends the payload to the real HAPI FHIR server's <code>$validate</code> operation. Useful for debugging the schema
+            before using it in the production flow (M37–M39).
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,7 +79,7 @@ export default function FhirSandboxPage() {
                 id="resource-type"
                 value={resourceType}
                 onChange={(e) => setResourceType(e.target.value)}
-                placeholder="mis. Patient, MedicationKnowledge, DetectedIssue"
+                placeholder="e.g. Patient, MedicationKnowledge, DetectedIssue"
                 required
               />
             </div>
@@ -95,7 +95,7 @@ export default function FhirSandboxPage() {
               />
             </div>
             <Button type="submit" disabled={isValidating} className="gap-1.5">
-              <Send className="h-3.5 w-3.5" /> {isValidating ? "Memvalidasi..." : "Validate"}
+              <Send className="h-3.5 w-3.5" /> {isValidating ? "Validating..." : "Validate"}
             </Button>
           </form>
         </CardContent>
@@ -104,7 +104,7 @@ export default function FhirSandboxPage() {
       {result && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Respons Server FHIR</CardTitle>
+            <CardTitle className="text-sm">FHIR Server Response</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="max-h-[32rem] overflow-auto rounded-lg border border-border bg-muted/30 p-3 text-[11px] leading-relaxed">

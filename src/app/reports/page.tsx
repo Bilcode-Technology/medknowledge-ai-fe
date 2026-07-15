@@ -50,7 +50,7 @@ export default function ReportsPage() {
       );
       setThroughput(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat throughput reviewer.");
+      setError(err instanceof ApiError ? err.message : "Failed to load reviewer throughput.");
     }
   }
 
@@ -65,7 +65,7 @@ export default function ReportsPage() {
       setVerificationTime(verificationData);
       setThroughput(throughputData);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat data laporan.");
+      setError(err instanceof ApiError ? err.message : "Failed to load report data.");
     }
   }
 
@@ -100,22 +100,22 @@ export default function ReportsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rata-rata Waktu Verifikasi</CardTitle>
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg. Verification Time</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {verificationTime?.average_hours != null ? `${verificationTime.average_hours} jam` : "-"}
+              {verificationTime?.average_hours != null ? `${verificationTime.average_hours} hrs` : "-"}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {verificationTime ? `${verificationTime.sample_size} sampel` : ""}
+              {verificationTime ? `${verificationTime.sample_size} samples` : ""}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Akurasi Draf AI</CardTitle>
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Draft Accuracy</CardTitle>
             <Cpu className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
@@ -123,20 +123,20 @@ export default function ReportsPage() {
               {accuracy?.accuracy_rate_percent != null ? `${accuracy.accuracy_rate_percent}%` : "-"}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {accuracy ? `${accuracy.approved_first_pass}/${accuracy.total_pharmacist_reviews} disetujui first-pass` : ""}
+              {accuracy ? `${accuracy.approved_first_pass}/${accuracy.total_pharmacist_reviews} approved first-pass` : ""}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Review Reviewer</CardTitle>
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Reviewer Reviews</CardTitle>
             <Users className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{totalReviews}</div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {throughput.length} reviewer aktif pada rentang ini
+              {throughput.length} active reviewers in this range
             </p>
           </CardContent>
         </Card>
@@ -145,14 +145,14 @@ export default function ReportsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-primary" /> Throughput Reviewer
+            <BarChart3 className="h-4 w-4 text-primary" /> Reviewer Throughput
           </CardTitle>
-          <CardDescription className="text-xs">Jumlah review yang diselesaikan per reviewer.</CardDescription>
+          <CardDescription className="text-xs">Number of reviews completed per reviewer.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-end gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="from-date">Dari Tanggal</Label>
+              <Label htmlFor="from-date">From Date</Label>
               <Input
                 id="from-date"
                 type="date"
@@ -162,7 +162,7 @@ export default function ReportsPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="to-date">Sampai Tanggal</Label>
+              <Label htmlFor="to-date">To Date</Label>
               <Input
                 id="to-date"
                 type="date"
@@ -175,7 +175,7 @@ export default function ReportsPage() {
 
           {chartData.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-8">
-              Tidak ada data throughput reviewer pada rentang ini.
+              No reviewer throughput data in this range.
             </p>
           ) : (
             <div className="h-80 w-full">
@@ -205,7 +205,7 @@ export default function ReportsPage() {
                     }}
                     labelStyle={{ color: CHART_COLORS.tooltipText }}
                   />
-                  <Bar dataKey="review_count" name="Jumlah Review" fill={CHART_COLORS.bar} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="review_count" name="Review Count" fill={CHART_COLORS.bar} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

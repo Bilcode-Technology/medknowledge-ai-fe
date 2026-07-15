@@ -25,7 +25,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal masuk. Coba lagi.");
+      setError(err instanceof ApiError ? err.message : "Failed to sign in. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -72,7 +72,7 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Memproses..." : "Masuk"}
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </CardContent>

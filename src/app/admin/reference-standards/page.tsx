@@ -58,7 +58,7 @@ export default function AdminReferenceStandardsPage() {
       const data = await apiFetch<ReferenceStandard[]>("/reference-standards");
       setStandards(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat reference standards.");
+      setError(err instanceof ApiError ? err.message : "Failed to load reference standards.");
     }
   }
 
@@ -77,7 +77,7 @@ export default function AdminReferenceStandardsPage() {
       setCreateOpen(false);
       await loadStandards();
     } catch (err) {
-      setCreateError(err instanceof ApiError ? err.message : "Gagal membuat reference standard.");
+      setCreateError(err instanceof ApiError ? err.message : "Failed to create reference standard.");
     } finally {
       setIsSavingCreate(false);
     }
@@ -108,20 +108,20 @@ export default function AdminReferenceStandardsPage() {
       setEditing(null);
       await loadStandards();
     } catch (err) {
-      setEditError(err instanceof ApiError ? err.message : "Gagal memperbarui reference standard.");
+      setEditError(err instanceof ApiError ? err.message : "Failed to update reference standard.");
     } finally {
       setIsSavingEdit(false);
     }
   }
 
   async function handleDelete(standard: ReferenceStandard) {
-    if (!window.confirm(`Hapus reference standard "${standard.name} (${standard.version})"?`)) return;
+    if (!window.confirm(`Delete reference standard "${standard.name} (${standard.version})"?`)) return;
     setError(null);
     try {
       await apiFetch(`/reference-standards/${standard.id}`, { method: "DELETE" });
       await loadStandards();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menghapus reference standard.");
+      setError(err instanceof ApiError ? err.message : "Failed to delete reference standard.");
     }
   }
 
@@ -130,25 +130,25 @@ export default function AdminReferenceStandardsPage() {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="text-sm">Reference Standards (M08)</CardTitle>
-          <CardDescription className="text-xs">{standards.length} standar referensi terdaftar.</CardDescription>
+          <CardDescription className="text-xs">{standards.length} registered reference standards.</CardDescription>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger
             render={
               <Button size="sm" className="gap-1">
-                <Plus className="h-3.5 w-3.5" /> Standard Baru
+                <Plus className="h-3.5 w-3.5" /> New Standard
               </Button>
             }
           />
           <DialogContent>
             <form onSubmit={handleCreate}>
               <DialogHeader>
-                <DialogTitle>Tambah Reference Standard</DialogTitle>
+                <DialogTitle>Add Reference Standard</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 py-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="rs-create-name">Nama</Label>
+                    <Label htmlFor="rs-create-name">Name</Label>
                     <Input
                       id="rs-create-name"
                       required
@@ -157,7 +157,7 @@ export default function AdminReferenceStandardsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="rs-create-version">Versi</Label>
+                    <Label htmlFor="rs-create-version">Version</Label>
                     <Input
                       id="rs-create-version"
                       required
@@ -167,7 +167,7 @@ export default function AdminReferenceStandardsPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="rs-create-url">Source URL (opsional)</Label>
+                  <Label htmlFor="rs-create-url">Source URL (optional)</Label>
                   <Input
                     id="rs-create-url"
                     type="url"
@@ -176,7 +176,7 @@ export default function AdminReferenceStandardsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="rs-create-published">Tanggal Publikasi (opsional)</Label>
+                  <Label htmlFor="rs-create-published">Publication Date (optional)</Label>
                   <Input
                     id="rs-create-published"
                     type="date"
@@ -185,7 +185,7 @@ export default function AdminReferenceStandardsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="rs-create-description">Deskripsi (opsional)</Label>
+                  <Label htmlFor="rs-create-description">Description (optional)</Label>
                   <Textarea
                     id="rs-create-description"
                     rows={3}
@@ -197,7 +197,7 @@ export default function AdminReferenceStandardsPage() {
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingCreate}>
-                  {isSavingCreate ? "Menyimpan..." : "Simpan"}
+                  {isSavingCreate ? "Saving..." : "Save"}
                 </Button>
               </DialogFooter>
             </form>
@@ -213,11 +213,11 @@ export default function AdminReferenceStandardsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Versi</TableHead>
-              <TableHead>Sumber</TableHead>
-              <TableHead>Publikasi</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Version</TableHead>
+              <TableHead>Source</TableHead>
+              <TableHead>Published</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -233,7 +233,7 @@ export default function AdminReferenceStandardsPage() {
                       rel="noreferrer"
                       className="text-primary hover:underline"
                     >
-                      Tautan
+                      Link
                     </a>
                   ) : (
                     "-"
@@ -262,7 +262,7 @@ export default function AdminReferenceStandardsPage() {
             {standards.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-xs text-muted-foreground py-8">
-                  Belum ada reference standard.
+                  No reference standards yet.
                 </TableCell>
               </TableRow>
             )}
@@ -285,7 +285,7 @@ export default function AdminReferenceStandardsPage() {
               <div className="space-y-3 py-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="rs-edit-name">Nama</Label>
+                    <Label htmlFor="rs-edit-name">Name</Label>
                     <Input
                       id="rs-edit-name"
                       required
@@ -294,7 +294,7 @@ export default function AdminReferenceStandardsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="rs-edit-version">Versi</Label>
+                    <Label htmlFor="rs-edit-version">Version</Label>
                     <Input
                       id="rs-edit-version"
                       required
@@ -304,7 +304,7 @@ export default function AdminReferenceStandardsPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="rs-edit-url">Source URL (opsional)</Label>
+                  <Label htmlFor="rs-edit-url">Source URL (optional)</Label>
                   <Input
                     id="rs-edit-url"
                     type="url"
@@ -313,7 +313,7 @@ export default function AdminReferenceStandardsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="rs-edit-published">Tanggal Publikasi (opsional)</Label>
+                  <Label htmlFor="rs-edit-published">Publication Date (optional)</Label>
                   <Input
                     id="rs-edit-published"
                     type="date"
@@ -322,7 +322,7 @@ export default function AdminReferenceStandardsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="rs-edit-description">Deskripsi (opsional)</Label>
+                  <Label htmlFor="rs-edit-description">Description (optional)</Label>
                   <Textarea
                     id="rs-edit-description"
                     rows={3}
@@ -334,7 +334,7 @@ export default function AdminReferenceStandardsPage() {
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingEdit}>
-                  {isSavingEdit ? "Menyimpan..." : "Simpan"}
+                  {isSavingEdit ? "Saving..." : "Save"}
                 </Button>
               </DialogFooter>
             </form>

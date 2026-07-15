@@ -45,7 +45,7 @@ export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError,
         onNumPages(loadedDoc.numPages);
       })
       .catch((err) => {
-        if (!cancelled) onError(err instanceof Error ? err.message : "Gagal memuat berkas PDF.");
+        if (!cancelled) onError(err instanceof Error ? err.message : "Failed to load PDF file.");
       });
     return () => {
       cancelled = true;
@@ -85,7 +85,7 @@ export default function PdfCanvasViewer({ data, pageNumber, onNumPages, onError,
         // cepat) memicu RenderingCancelledException — itu bukan error nyata.
         const isCancelled = err instanceof pdfjsLib.RenderingCancelledException;
         if (!cancelled && !isCancelled) {
-          onError(err instanceof Error ? err.message : "Gagal merender halaman PDF.");
+          onError(err instanceof Error ? err.message : "Failed to render PDF page.");
         }
       } finally {
         if (!cancelled) setIsRendering(false);

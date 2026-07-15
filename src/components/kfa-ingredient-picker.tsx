@@ -70,7 +70,7 @@ export function KfaIngredientPicker({ label, name, kfaCode, onChange, placeholde
           value={query}
           onChange={(e) => handleInput(e.target.value)}
           onBlur={() => setTimeout(() => setIsOpen(false), 150)}
-          placeholder={placeholder ?? "Cari zat aktif (KFA)..."}
+          placeholder={placeholder ?? "Search active ingredient (KFA)..."}
           className="pl-8"
         />
       </div>
@@ -83,7 +83,7 @@ export function KfaIngredientPicker({ label, name, kfaCode, onChange, placeholde
         </Badge>
       ) : (
         <span className="text-[10px] text-muted-foreground">
-          Tanpa kode KFA (free-text){searched && results.length === 0 ? " — dataset KFA kosong? jalankan `php artisan kfa:import`" : ""}
+          No KFA code (free-text){searched && results.length === 0 ? " — is the KFA dataset empty? run `php artisan kfa:import`" : ""}
         </span>
       )}
       {isOpen && results.length > 0 && (

@@ -66,7 +66,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
       });
       return data;
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat run distilasi.");
+      setError(err instanceof ApiError ? err.message : "Failed to load distillation run.");
       return null;
     }
   }, [id]);
@@ -107,7 +107,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
     } catch (err) {
       patchForm(extraction.id, {
         isSubmitting: false,
-        error: err instanceof ApiError ? err.message : "Gagal konfirmasi interaksi.",
+        error: err instanceof ApiError ? err.message : "Failed to confirm interaction.",
       });
     }
   }
@@ -115,7 +115,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
   const isBusy = run && (run.status === "queued" || run.status === "running");
 
   return (
-    <ProtectedShell breadcrumb="Distilasi AI">
+    <ProtectedShell breadcrumb="AI Distillation">
       <div className="space-y-4">
         <Card>
           <CardHeader>
@@ -123,21 +123,21 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  Distilasi: {run?.ingredient_name ?? "..."}
-                  {run?.counterpart_name ? ` + ${run.counterpart_name}` : " (semua interaksi)"}
+                  Distillation: {run?.ingredient_name ?? "..."}
+                  {run?.counterpart_name ? ` + ${run.counterpart_name}` : " (all interactions)"}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Model {run?.model ?? "-"} · {run?.total_tokens ?? "-"} token · ${run?.cost_usd ?? "-"}
+                  Model {run?.model ?? "-"} · {run?.total_tokens ?? "-"} tokens · ${run?.cost_usd ?? "-"}
                 </CardDescription>
               </div>
               {isBusy && (
                 <Badge className="bg-info/10 text-info border-info/20 text-[10px] flex items-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" /> AI sedang mendistilasi...
+                  <Loader2 className="h-3 w-3 animate-spin" /> AI is distilling...
                 </Badge>
               )}
               {run?.status === "failed" && (
                 <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[10px] flex items-center gap-1">
-                  <XCircle className="h-3 w-3" /> Gagal
+                  <XCircle className="h-3 w-3" /> Failed
                 </Badge>
               )}
             </div>
@@ -154,7 +154,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
         {run?.status === "completed" && (run.extractions ?? []).length === 0 && (
           <Card>
             <CardContent className="py-6">
-              <p className="text-xs text-muted-foreground">AI tidak menemukan interaksi yang mapan untuk zat aktif ini.</p>
+              <p className="text-xs text-muted-foreground">The AI did not find any well-established interactions for this ingredient.</p>
             </CardContent>
           </Card>
         )}
@@ -194,7 +194,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
                 {confirmed ? (
                   <div className="flex items-center justify-between gap-4">
                     <Badge className="bg-success/10 text-success border-success/20 text-[10px] flex items-center gap-1 w-fit">
-                      <CheckCircle2 className="h-3 w-3" /> Terkonfirmasi — masuk validasi apoteker
+                      <CheckCircle2 className="h-3 w-3" /> Confirmed — sent for pharmacist validation
                     </Badge>
                     <Button
                       size="sm"
@@ -202,7 +202,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
                       render={<Link href={`/annotations/${extraction.annotation!.id}`} />}
                       className="gap-1"
                     >
-                      <ExternalLink className="h-3.5 w-3.5" /> Buka Annotation
+                      <ExternalLink className="h-3.5 w-3.5" /> Open Annotation
                     </Button>
                   </div>
                 ) : (
@@ -222,7 +222,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Effect — narasi efek klinis</Label>
+                      <Label>Effect — clinical effect narrative</Label>
                       <Textarea
                         value={form.effect}
                         onChange={(e) => patchForm(extraction.id, { effect: e.target.value })}
@@ -231,7 +231,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
                     </div>
                     <div className="grid gap-4 md:grid-cols-[1fr_220px]">
                       <div className="space-y-1.5">
-                        <Label>Management — narasi penanganan</Label>
+                        <Label>Management — handling narrative</Label>
                         <Textarea
                           value={form.management}
                           onChange={(e) => patchForm(extraction.id, { management: e.target.value })}
@@ -239,7 +239,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label>Kategori</Label>
+                        <Label>Category</Label>
                         <Select
                           value={form.managementCategory}
                           onValueChange={(value) => patchForm(extraction.id, { managementCategory: value as string })}
@@ -258,7 +258,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Reference — sumber yang diatribusikan AI (wajib diverifikasi)</Label>
+                      <Label>Reference — source attributed by the AI (must be verified)</Label>
                       <Textarea
                         value={form.reference}
                         onChange={(e) => patchForm(extraction.id, { reference: e.target.value })}
@@ -273,7 +273,7 @@ export default function DistillationRunPage({ params }: { params: Promise<{ id: 
                       className="gap-1"
                     >
                       <Send className="h-3.5 w-3.5" />
-                      {form.isSubmitting ? "Mengirim..." : "Konfirmasi → Validasi Apoteker"}
+                      {form.isSubmitting ? "Sending..." : "Confirm → Pharmacist Validation"}
                     </Button>
                   </>
                 )}

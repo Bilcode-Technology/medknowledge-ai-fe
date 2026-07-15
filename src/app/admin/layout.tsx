@@ -25,19 +25,19 @@ type AdminNavItem = {
 };
 
 const ADMIN_NAV: AdminNavItem[] = [
-  { title: "Pengguna", href: "/admin/users", breadcrumb: "Manajemen Pengguna", roles: ["admin"] },
+  { title: "Users", href: "/admin/users", breadcrumb: "User Management", roles: ["admin"] },
   {
     // Tahap 0 — Penetapan Standar: severity schema, evidence grading, template
     // anotasi (jawaban "Tahap 0 ada dimana?" — sebelumnya API-only, tanpa UI).
-    title: "Standar (Tahap 0)",
+    title: "Standards (Stage 0)",
     href: "/admin/standards",
-    breadcrumb: "Tahap 0 — Penetapan Standar",
+    breadcrumb: "Stage 0 — Standards Definition",
     roles: ["admin", "project_manager"],
   },
   {
-    title: "Kategori",
+    title: "Categories",
     href: "/admin/categories",
-    breadcrumb: "Kategori Penyakit & Obat",
+    breadcrumb: "Disease & Drug Categories",
     roles: ["admin", "project_manager"],
   },
   {
@@ -96,8 +96,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex flex-col items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-10 text-center text-sm text-destructive">
           <ShieldAlert className="h-5 w-5" />
           <p>
-            Akses ditolak. Halaman ini khusus untuk{" "}
-            {current.roles.map((code) => ROLE_NAME[code] ?? code).join(" atau ")}.
+            Access denied. This page is restricted to{" "}
+            {current.roles.map((code) => ROLE_NAME[code] ?? code).join(" or ")}.
           </p>
         </div>
       )}

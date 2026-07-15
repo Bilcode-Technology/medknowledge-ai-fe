@@ -15,22 +15,22 @@ import { apiFetch, ApiError } from "@/lib/api";
 import type { Extraction, Paginated, Project, Source } from "@/lib/types";
 
 function ocrBadge(status: string) {
-  if (status === "done") return <Badge className="bg-success/10 text-success border-success/20 text-[10px]">OCR Selesai</Badge>;
-  if (status === "failed") return <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[10px]">OCR Gagal</Badge>;
-  return <Badge className="bg-muted text-muted-foreground border-border text-[10px]">OCR Diproses</Badge>;
+  if (status === "done") return <Badge className="bg-success/10 text-success border-success/20 text-[10px]">OCR Done</Badge>;
+  if (status === "failed") return <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[10px]">OCR Failed</Badge>;
+  return <Badge className="bg-muted text-muted-foreground border-border text-[10px]">OCR Processing</Badge>;
 }
 
 function validationBadge(status: string) {
   if (status === "valid") return <Badge className="bg-success/10 text-success border-success/20 text-[10px]">Valid</Badge>;
   if (status === "invalid") return <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[10px]">Invalid</Badge>;
-  return <Badge className="bg-warning/10 text-warning border-warning/20 text-[10px]">Menunggu Validasi</Badge>;
+  return <Badge className="bg-warning/10 text-warning border-warning/20 text-[10px]">Pending Validation</Badge>;
 }
 
 function extractionStatusBadge(status: string) {
   if (status === "passed_gate")
     return (
       <Badge className="bg-success/10 text-success border-success/20 text-[10px] flex items-center gap-1 w-fit">
-        <CheckCircle2 className="h-3 w-3" /> Lolos Gate
+        <CheckCircle2 className="h-3 w-3" /> Passed Gate
       </Badge>
     );
   if (status === "auto_rejected")
@@ -40,7 +40,7 @@ function extractionStatusBadge(status: string) {
       </Badge>
     );
   if (status === "flagged_fp_fn")
-    return <Badge className="bg-warning/10 text-warning border-warning/20 text-[10px]">Ditandai FP/FN</Badge>;
+    return <Badge className="bg-warning/10 text-warning border-warning/20 text-[10px]">Flagged FP/FN</Badge>;
   return (
     <Badge className="bg-muted text-muted-foreground border-border text-[10px] flex items-center gap-1 w-fit">
       <Clock className="h-3 w-3" /> Pending
@@ -50,9 +50,9 @@ function extractionStatusBadge(status: string) {
 
 const ANNOTATION_STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
-  revision_requested: "Revisi Diminta",
+  revision_requested: "Revision Requested",
   senior_review: "Senior Review",
-  disputed: "Disengketakan",
+  disputed: "Disputed",
   published: "Published",
 };
 
@@ -105,7 +105,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       setSources(sourcesData.data);
       setExtractions(extractionsData.data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat data proyek.");
+      setError(err instanceof ApiError ? err.message : "Failed to load project data.");
     }
   }
 
@@ -130,14 +130,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       if (fileInputRef.current) fileInputRef.current.value = "";
       await loadData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal mengunggah dokumen.");
+      setError(err instanceof ApiError ? err.message : "Failed to upload document.");
     } finally {
       setIsUploading(false);
     }
   }
 
   return (
-    <ProtectedShell breadcrumb={project?.name ?? "Memuat..."}>
+    <ProtectedShell breadcrumb={project?.name ?? "Loading..."}>
       {error && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">{error}</div>
       )}
@@ -147,7 +147,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <CardHeader>
             <CardTitle className="text-lg">{project.name}</CardTitle>
             <CardDescription className="text-xs">
-              Status: <span className="text-primary">{project.status}</span> · Prioritas:{" "}
+              Status: <span className="text-primary">{project.status}</span> · Priority:{" "}
               <span className="capitalize">{project.priority}</span>
             </CardDescription>
           </CardHeader>
@@ -157,10 +157,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       <Tabs defaultValue="sources" className="w-full">
         <TabsList>
           <TabsTrigger value="sources" className="text-xs">
-            Sumber Dokumen (M09)
+            Source Documents (M09)
           </TabsTrigger>
           <TabsTrigger value="extractions" className="text-xs">
-            Hasil Ekstraksi AI (M14-M21)
+            AI Extraction Results (M14-M21)
           </TabsTrigger>
         </TabsList>
 
@@ -168,12 +168,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
-                <FileUp className="h-4 w-4 text-primary" /> Unggah Dokumen Referensi (Opsional)
+                <FileUp className="h-4 w-4 text-primary" /> Upload Reference Document (Optional)
               </CardTitle>
               <CardDescription className="text-xs">
-                PDF/RIS, maksimal 15MB. Default: disimpan sebagai referensi saja (M50) — knowledge DDI didistilasi dari AI
-                model, bukan dari isi dokumen. Nonaktifkan centang untuk menjalankan pipeline ekstraksi dokumen penuh
-                (OCR M10 → validasi M12 → ekstraksi M14).
+                PDF/RIS, max 15MB. Default: stored as reference only (M50) — DDI knowledge is distilled from the AI
+                model, not from document contents. Uncheck to run the full document extraction pipeline
+                (OCR M10 → validation M12 → extraction M14).
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -184,7 +184,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     <Input id="file" type="file" accept=".pdf,.ris" ref={fileInputRef} required />
                   </div>
                   <Button type="submit" disabled={isUploading}>
-                    {isUploading ? "Mengunggah..." : "Unggah"}
+                    {isUploading ? "Uploading..." : "Upload"}
                   </Button>
                 </div>
                 <label className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -194,7 +194,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     onChange={(e) => setReferenceOnly(e.target.checked)}
                     className="h-3.5 w-3.5 accent-primary"
                   />
-                  Simpan sebagai referensi saja (tanpa OCR/ekstraksi)
+                  Store as reference only (no OCR/extraction)
                 </label>
               </form>
             </CardContent>
@@ -205,9 +205,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="px-6 text-xs">Dokumen</TableHead>
+                    <TableHead className="px-6 text-xs">Document</TableHead>
                     <TableHead className="text-xs">OCR</TableHead>
-                    <TableHead className="text-xs">Validasi (M12)</TableHead>
+                    <TableHead className="text-xs">Validation (M12)</TableHead>
                     <TableHead className="px-6 text-xs text-right">Viewer (M15/M16)</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -232,7 +232,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             size="xs"
                             className="text-primary hover:text-foreground"
                           >
-                            <FileSearch className="h-3.5 w-3.5 mr-1" /> Lihat PDF
+                            <FileSearch className="h-3.5 w-3.5 mr-1" /> View PDF
                           </Button>
                         ) : (
                           <span className="text-[10px] text-muted-foreground">-</span>
@@ -243,7 +243,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   {sources.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-6">
-                        Belum ada dokumen sumber diunggah.
+                        No source documents uploaded yet.
                       </TableCell>
                     </TableRow>
                   )}
@@ -257,18 +257,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
-                <FlaskConical className="h-4 w-4 text-info" /> Interaksi Obat Terekstrak
+                <FlaskConical className="h-4 w-4 text-info" /> Extracted Drug Interactions
               </CardTitle>
             </CardHeader>
             <CardContent className="px-0">
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="px-6 text-xs">Pasangan Obat</TableHead>
+                    <TableHead className="px-6 text-xs">Drug Pair</TableHead>
                     <TableHead className="text-xs">Confidence</TableHead>
-                    <TableHead className="text-xs">Status Gate</TableHead>
-                    <TableHead className="px-6 text-xs">Alasan</TableHead>
-                    <TableHead className="px-6 text-xs text-right">Draf Annotation</TableHead>
+                    <TableHead className="text-xs">Gate Status</TableHead>
+                    <TableHead className="px-6 text-xs">Reason</TableHead>
+                    <TableHead className="px-6 text-xs text-right">Annotation Draft</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -293,7 +293,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                               size="xs"
                               className="text-primary hover:text-foreground"
                             >
-                              <Eye className="h-3.5 w-3.5 mr-1" /> Lihat Draf
+                              <Eye className="h-3.5 w-3.5 mr-1" /> View Draft
                             </Button>
                           </div>
                         ) : (
@@ -305,7 +305,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   {extractions.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-xs text-muted-foreground py-6">
-                        Belum ada hasil ekstraksi. Unggah dan validasi sumber dokumen dulu.
+                        No extraction results yet. Upload and validate a source document first.
                       </TableCell>
                     </TableRow>
                   )}

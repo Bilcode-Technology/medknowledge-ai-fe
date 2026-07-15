@@ -14,7 +14,7 @@ import type { EnterpriseSearchResult, SemanticSearchResult } from "@/lib/types";
 
 const SOURCE_LABEL: Record<string, string> = {
   keyword: "Keyword",
-  semantic: "Semantik",
+  semantic: "Semantic",
 };
 
 const ENTITY_LABEL: Record<string, string> = {
@@ -58,7 +58,7 @@ export default function SearchPage() {
     setError(null);
 
     if (!q) {
-      setError("Masukkan kata kunci pencarian terlebih dahulu.");
+      setError("Enter a search term first.");
       return;
     }
 
@@ -76,7 +76,7 @@ export default function SearchPage() {
         const validationMessage = err.errors ? Object.values(err.errors).flat().join(" ") : null;
         setError(validationMessage || err.message);
       } else {
-        setError("Gagal melakukan pencarian.");
+        setError("Failed to perform search.");
       }
       setSemanticResults([]);
       setEnterpriseResults([]);
@@ -90,10 +90,10 @@ export default function SearchPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <SearchIcon className="h-4 w-4 text-primary" /> Pencarian Knowledge (M36 + M47)
+            <SearchIcon className="h-4 w-4 text-primary" /> Knowledge Search (M36 + M47)
           </CardTitle>
           <CardDescription className="text-xs">
-            Cari interaksi obat lintas seluruh knowledge base menggunakan pencarian semantik &amp; gabungan (keyword + semantik).
+            Search drug interactions across the entire knowledge base using semantic &amp; combined (keyword + semantic) search.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -101,14 +101,14 @@ export default function SearchPage() {
             <div className="relative flex-1">
               <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="mis. warfarin amiodarone"
+                placeholder="e.g. warfarin amiodarone"
                 value={queryInput}
                 onChange={(e) => setQueryInput(e.target.value)}
                 className="pl-9 h-9 text-xs"
               />
             </div>
             <Button type="submit" size="sm" disabled={isSearching} className="gap-1">
-              {isSearching ? "Mencari..." : "Cari"}
+              {isSearching ? "Searching..." : "Search"}
             </Button>
           </form>
           {error && <p className="text-xs text-destructive mt-3">{error}</p>}
@@ -118,9 +118,9 @@ export default function SearchPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-info" /> Pencarian Semantik
+            <Sparkles className="h-4 w-4 text-info" /> Semantic Search
           </CardTitle>
-          <CardDescription className="text-xs">Hasil berdasarkan kemiripan makna (vector similarity) dari knowledge repository.</CardDescription>
+          <CardDescription className="text-xs">Results based on meaning similarity (vector similarity) from the knowledge repository.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="divide-y divide-border">
@@ -132,7 +132,7 @@ export default function SearchPage() {
                     {" × "}
                     {result.annotation.extraction.drug_b?.canonical_name ?? result.annotation.extraction.raw_drug_b_text}
                   </Link>
-                  <Badge className="bg-info/10 text-info border-info/20 text-[10px]">Skor {scorePercent(result.score)}</Badge>
+                  <Badge className="bg-info/10 text-info border-info/20 text-[10px]">Score {scorePercent(result.score)}</Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground">{result.annotation.project?.name ?? "-"}</p>
                 {/* annotation.content di sini adalah field Annotation mentah (HTML), beda dengan
@@ -146,10 +146,10 @@ export default function SearchPage() {
               </div>
             ))}
             {hasSearched && !isSearching && semanticResults.length === 0 && !error && (
-              <p className="text-xs text-muted-foreground text-center py-8">Tidak ada hasil pencarian semantik.</p>
+              <p className="text-xs text-muted-foreground text-center py-8">No semantic search results.</p>
             )}
             {!hasSearched && (
-              <p className="text-xs text-muted-foreground text-center py-8">Masukkan kata kunci untuk memulai pencarian.</p>
+              <p className="text-xs text-muted-foreground text-center py-8">Enter a search term to get started.</p>
             )}
           </div>
         </CardContent>
@@ -158,9 +158,9 @@ export default function SearchPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <Layers className="h-4 w-4 text-success" /> Pencarian Gabungan
+            <Layers className="h-4 w-4 text-success" /> Combined Search
           </CardTitle>
-          <CardDescription className="text-xs">Gabungan hasil keyword (Elasticsearch) &amp; semantik (Qdrant) lintas entitas.</CardDescription>
+          <CardDescription className="text-xs">Combined keyword (Elasticsearch) &amp; semantic (Qdrant) results across entities.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="divide-y divide-border">
@@ -181,7 +181,7 @@ export default function SearchPage() {
                     {SOURCE_LABEL[result.source] ?? result.source}
                   </Badge>
                   <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">
-                    Skor {scorePercent(result.score)}
+                    Score {scorePercent(result.score)}
                   </Badge>
                 </div>
               );
@@ -212,7 +212,7 @@ export default function SearchPage() {
                     {badges}
                   </div>
                   {data.synonyms && data.synonyms.length > 0 && (
-                    <p className="text-[11px] text-muted-foreground">Sinonim: {data.synonyms.join(", ")}</p>
+                    <p className="text-[11px] text-muted-foreground">Synonyms: {data.synonyms.join(", ")}</p>
                   )}
                   <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
                     <span>KFA: {data.kfa_code ?? "-"}</span>
@@ -223,10 +223,10 @@ export default function SearchPage() {
               );
             })}
             {hasSearched && !isSearching && enterpriseResults.length === 0 && !error && (
-              <p className="text-xs text-muted-foreground text-center py-8">Tidak ada hasil pencarian gabungan.</p>
+              <p className="text-xs text-muted-foreground text-center py-8">No combined search results.</p>
             )}
             {!hasSearched && (
-              <p className="text-xs text-muted-foreground text-center py-8">Masukkan kata kunci untuk memulai pencarian.</p>
+              <p className="text-xs text-muted-foreground text-center py-8">Enter a search term to get started.</p>
             )}
           </div>
         </CardContent>

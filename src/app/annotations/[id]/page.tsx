@@ -53,9 +53,9 @@ import {
 
 const ANNOTATION_STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
-  revision_requested: "Revisi Diminta",
+  revision_requested: "Revision Requested",
   senior_review: "Senior Review",
-  disputed: "Disengketakan",
+  disputed: "Disputed",
   published: "Published",
 };
 
@@ -89,10 +89,10 @@ function annotationStatusBadge(status: string) {
 }
 
 const DECISION_LABEL: Record<string, string> = {
-  approved: "Disetujui",
-  revision_requested: "Revisi Diminta",
-  rejected: "Ditolak",
-  disputed: "Disengketakan",
+  approved: "Approved",
+  revision_requested: "Revision Requested",
+  rejected: "Rejected",
+  disputed: "Disputed",
 };
 
 function decisionBadge(decision: string) {
@@ -108,13 +108,13 @@ function decisionBadge(decision: string) {
 function pendingRoleNote(status: string): string | null {
   switch (status) {
     case "draft":
-      return "Menunggu tindakan dari Pharmacist.";
+      return "Waiting for action from Pharmacist.";
     case "senior_review":
-      return "Menunggu tindakan dari Senior Reviewer.";
+      return "Waiting for action from Senior Reviewer.";
     case "disputed":
-      return "Menunggu tindakan dari Arbiter.";
+      return "Waiting for action from Arbiter.";
     case "revision_requested":
-      return "Menunggu revisi dari penulis draf.";
+      return "Waiting for revision from the draft author.";
     default:
       return null;
   }
@@ -134,7 +134,7 @@ function versionAuthorLabel(changedBy: unknown): string {
   if (typeof changedBy === "object" && "name" in (changedBy as Record<string, unknown>)) {
     return String((changedBy as { name: unknown }).name);
   }
-  return `Pengguna #${changedBy}`;
+  return `User #${changedBy}`;
 }
 
 export default function AnnotationDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -186,7 +186,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       const data = await apiFetch<Annotation>(`/annotations/${id}`);
       setAnnotation(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat data annotation.");
+      setError(err instanceof ApiError ? err.message : "Failed to load annotation data.");
     }
   }
 
@@ -206,12 +206,12 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
     }
     apiFetch<ArbitrationDiff>(`/annotations/${id}/arbitration`)
       .then(setArbitration)
-      .catch((err) => setError(err instanceof ApiError ? err.message : "Gagal memuat data arbitrase."));
+      .catch((err) => setError(err instanceof ApiError ? err.message : "Failed to load arbitration data."));
   }, [isArbiterTurn, id]);
 
   if (!annotation) {
     return (
-      <ProtectedShell breadcrumb="Memuat...">
+      <ProtectedShell breadcrumb="Loading...">
         {error && (
           <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">{error}</div>
         )}
@@ -274,7 +274,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       setIsEditingContent(false);
       await loadData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menyimpan konten.");
+      setError(err instanceof ApiError ? err.message : "Failed to save content.");
     } finally {
       setIsSavingContent(false);
     }
@@ -291,7 +291,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       await loadData();
       return true;
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal mengirim keputusan review.");
+      setError(err instanceof ApiError ? err.message : "Failed to submit review decision.");
       return false;
     } finally {
       setIsSubmittingAction(false);
@@ -365,7 +365,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       await apiFetch(`/annotations/${id}/versions/${versionId}/rollback`, { method: "POST" });
       await loadData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal melakukan rollback.");
+      setError(err instanceof ApiError ? err.message : "Failed to roll back.");
     } finally {
       setRollingVersionId(null);
     }
@@ -383,7 +383,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       setNewCommentText("");
       await loadData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menambah komentar.");
+      setError(err instanceof ApiError ? err.message : "Failed to add comment.");
     } finally {
       setIsSubmittingComment(false);
     }
@@ -402,7 +402,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       setReplyOpenId(null);
       await loadData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal membalas komentar.");
+      setError(err instanceof ApiError ? err.message : "Failed to reply to comment.");
     } finally {
       setIsSubmittingReply(false);
     }
@@ -415,14 +415,14 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       await apiFetch(`/comments/${commentId}/resolve`, { method: "POST" });
       await loadData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menyelesaikan komentar.");
+      setError(err instanceof ApiError ? err.message : "Failed to resolve comment.");
     } finally {
       setResolvingCommentId(null);
     }
   }
 
   return (
-    <ProtectedShell breadcrumb={`Draf Annotation — ${drugPairLabel}`}>
+    <ProtectedShell breadcrumb={`Annotation Draft — ${drugPairLabel}`}>
       {error && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">{error}</div>
       )}
@@ -447,11 +447,11 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
         <Card>
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" /> Sumber: Distilasi AI (M50)
+              <Sparkles className="h-4 w-4 text-primary" /> Source: AI Distillation (M50)
             </CardTitle>
             <CardDescription className="text-xs">
-              Interaksi ini didistilasi dari AI model (run #{annotation.extraction.distillation_run_id ?? "-"}), bukan
-              diekstrak dari dokumen — verifikasi kebenaran klinis & referensi di bawah, bukan sitasi halaman PDF.
+              This interaction was distilled from the AI model (run #{annotation.extraction.distillation_run_id ?? "-"}), not
+              extracted from a document — verify the clinical accuracy &amp; reference below, not a PDF page citation.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-xs">
@@ -493,7 +493,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
             )}
             {annotation.extraction.reference_text && (
               <p>
-                <span className="text-muted-foreground">Reference (atribusi AI — wajib diverifikasi):</span>{" "}
+                <span className="text-muted-foreground">Reference (AI-attributed — must be verified):</span>{" "}
                 {annotation.extraction.reference_text}
               </p>
             )}
@@ -507,9 +507,9 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle className="text-sm flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" /> Konten Annotation
+                <FileText className="h-4 w-4 text-primary" /> Annotation Content
               </CardTitle>
-              <CardDescription className="text-xs">Versi saat ini: v{annotation.current_version_number}</CardDescription>
+              <CardDescription className="text-xs">Current version: v{annotation.current_version_number}</CardDescription>
             </div>
             {!isEditingContent && canEditContent && (
               <Button size="sm" variant="outline" onClick={startEditing} className="gap-1">
@@ -527,20 +527,20 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
           {isEditingContent && (
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="change-summary">Ringkasan Perubahan (opsional)</Label>
+                <Label htmlFor="change-summary">Change Summary (optional)</Label>
                 <Input
                   id="change-summary"
                   value={changeSummary}
                   onChange={(e) => setChangeSummary(e.target.value)}
-                  placeholder="mis. Perbaikan sitasi & severity"
+                  placeholder="e.g. Citation & severity fixes"
                 />
               </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={saveContent} disabled={isSavingContent} className="gap-1">
-                  <Save className="h-3.5 w-3.5" /> {isSavingContent ? "Menyimpan..." : "Simpan"}
+                  <Save className="h-3.5 w-3.5" /> {isSavingContent ? "Saving..." : "Save"}
                 </Button>
                 <Button size="sm" variant="outline" onClick={cancelEditing} disabled={isSavingContent}>
-                  Batal
+                  Cancel
                 </Button>
               </div>
             </div>
@@ -553,9 +553,9 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
         <Card>
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <ClipboardCheck className="h-4 w-4 text-primary" /> Verifikasi Pharmacist (M29)
+              <ClipboardCheck className="h-4 w-4 text-primary" /> Pharmacist Verification (M29)
             </CardTitle>
-            <CardDescription className="text-xs">Semua poin wajib dicentang sebelum draf dapat disetujui.</CardDescription>
+            <CardDescription className="text-xs">All items must be checked before the draft can be approved.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2.5">
@@ -570,19 +570,19 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
               ))}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="pharmacist-notes">Catatan (opsional)</Label>
+              <Label htmlFor="pharmacist-notes">Notes (optional)</Label>
               <Textarea
                 id="pharmacist-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Catatan verifikasi..."
+                placeholder="Verification notes..."
               />
             </div>
             <Label className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-2.5 font-normal text-xs">
               <Checkbox checked={sourceInvalid} onCheckedChange={(checked) => setSourceInvalid(checked === true)} />
               <span>
-                Sumber dokumen itu sendiri tidak valid — dokumen sumber bermasalah, bukan hanya draf yang perlu direvisi.
-                Hanya relevan bila digunakan bersama Reject.
+                The source document itself is invalid — the source document has a problem, not just the draft needing
+                revision. Only relevant when used together with Reject.
               </span>
             </Label>
             <div className="flex flex-wrap gap-2">
@@ -609,12 +609,12 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
         <Card>
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-primary" /> Review Senior Reviewer
+              <ShieldCheck className="h-4 w-4 text-primary" /> Senior Reviewer Review
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="senior-notes">Catatan (opsional, dipakai untuk Request Revision)</Label>
+              <Label htmlFor="senior-notes">Notes (optional, used for Request Revision)</Label>
               <Textarea id="senior-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -640,30 +640,30 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                 />
                 <DialogContent className="sm:max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Ajukan Sengketa (M32)</DialogTitle>
+                    <DialogTitle>Raise Dispute (M32)</DialogTitle>
                     <DialogDescription>
-                      Usulkan versi konten alternatif. Arbiter akan memilih antara draf asli (disetujui pharmacist) atau
-                      usulan Anda.
+                      Propose an alternative content version. The Arbiter will choose between the original draft
+                      (pharmacist-approved) or your proposal.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-3 py-2">
                     <div className="space-y-1.5">
-                      <Label>Konten Usulan</Label>
+                      <Label>Proposed Content</Label>
                       <AnnotationEditor content={disputeContent} editable onChange={setDisputeContent} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="dispute-notes">Catatan Sengketa</Label>
+                      <Label htmlFor="dispute-notes">Dispute Notes</Label>
                       <Textarea
                         id="dispute-notes"
                         value={disputeNotes}
                         onChange={(e) => setDisputeNotes(e.target.value)}
-                        placeholder="Alasan sengketa..."
+                        placeholder="Reason for dispute..."
                       />
                     </div>
                   </div>
                   <DialogFooter>
                     <Button size="sm" onClick={handleDisputeSubmit} disabled={isSubmittingAction || !disputeContent.trim()}>
-                      {isSubmittingAction ? "Mengirim..." : "Kirim Sengketa"}
+                      {isSubmittingAction ? "Submitting..." : "Submit Dispute"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -677,17 +677,17 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
         <Card>
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <Scale className="h-4 w-4 text-primary" /> Arbitrase (M32)
+              <Scale className="h-4 w-4 text-primary" /> Arbitration (M32)
             </CardTitle>
-            <CardDescription className="text-xs">Pilih versi konten yang akan dipublikasikan.</CardDescription>
+            <CardDescription className="text-xs">Choose the content version to publish.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!arbitration && <p className="text-xs text-muted-foreground">Memuat data arbitrase...</p>}
+            {!arbitration && <p className="text-xs text-muted-foreground">Loading arbitration data...</p>}
             {arbitration && (
               <>
                 {arbitration.dispute_notes && (
                   <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs">
-                    <span className="font-medium">Catatan Sengketa: </span>
+                    <span className="font-medium">Dispute Notes: </span>
                     {arbitration.dispute_notes}
                   </div>
                 )}
@@ -700,18 +700,18 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                     <Label className="flex-col items-start gap-0.5">
                       <span>Proposed (Senior Reviewer)</span>
                       {arbitration.proposed_by && (
-                        <span className="text-[10px] font-normal text-muted-foreground">oleh {arbitration.proposed_by.name}</span>
+                        <span className="text-[10px] font-normal text-muted-foreground">by {arbitration.proposed_by.name}</span>
                       )}
                     </Label>
                     {arbitration.proposed_content ? (
                       <AnnotationEditor content={arbitration.proposed_content} editable={false} />
                     ) : (
-                      <p className="text-xs text-muted-foreground">Tidak ada usulan konten.</p>
+                      <p className="text-xs text-muted-foreground">No proposed content.</p>
                     )}
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Keputusan</Label>
+                  <Label>Decision</Label>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -731,11 +731,11 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="arbiter-notes">Catatan (opsional)</Label>
+                  <Label htmlFor="arbiter-notes">Notes (optional)</Label>
                   <Textarea id="arbiter-notes" value={arbiterNotes} onChange={(e) => setArbiterNotes(e.target.value)} />
                 </div>
                 <Button size="sm" onClick={handleArbiterResolve} disabled={isSubmittingAction || !resolution} className="gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Selesaikan Sengketa
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Resolve Dispute
                 </Button>
               </>
             )}
@@ -755,12 +755,12 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <History className="h-4 w-4 text-info" /> Riwayat Review
+            <History className="h-4 w-4 text-info" /> Review History
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {(annotation.reviews ?? []).length === 0 && (
-            <p className="text-xs text-muted-foreground">Belum ada review.</p>
+            <p className="text-xs text-muted-foreground">No reviews yet.</p>
           )}
           {(annotation.reviews ?? []).map((review) => (
             <div key={review.id} className="rounded-lg border border-border p-3 space-y-1.5">
@@ -794,42 +794,42 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <FileClock className="h-4 w-4 text-info" /> Riwayat Versi
+            <FileClock className="h-4 w-4 text-info" /> Version History
           </CardTitle>
           <CardDescription className="text-xs">
-            Implementasi M28 &quot;Track Changes&quot;: diff kata-per-kata antar dua versi, bukan live collaborative editing.
+            M28 &quot;Track Changes&quot; implementation: word-by-word diff between two versions, not live collaborative editing.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {sortedVersions.length >= 2 && (
             <div className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-muted/20 p-3">
               <div className="space-y-1">
-                <Label className="text-[10px]">Bandingkan versi</Label>
+                <Label className="text-[10px]">Compare versions</Label>
                 <Select value={compareFromVersionNumber ?? undefined} onValueChange={setCompareFromVersionNumber}>
                   <SelectTrigger size="sm" className="w-36">
-                    <SelectValue placeholder="Versi lama" />
+                    <SelectValue placeholder="Old version" />
                   </SelectTrigger>
                   <SelectContent>
                     {sortedVersions.map((version) => (
                       <SelectItem key={version.id} value={String(version.version_number)}>
                         v{version.version_number}
-                        {version.version_number === annotation.current_version_number ? " (saat ini)" : ""}
+                        {version.version_number === annotation.current_version_number ? " (current)" : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">dengan</Label>
+                <Label className="text-[10px]">with</Label>
                 <Select value={compareToVersionNumber ?? undefined} onValueChange={setCompareToVersionNumber}>
                   <SelectTrigger size="sm" className="w-36">
-                    <SelectValue placeholder="Versi baru" />
+                    <SelectValue placeholder="New version" />
                   </SelectTrigger>
                   <SelectContent>
                     {sortedVersions.map((version) => (
                       <SelectItem key={version.id} value={String(version.version_number)}>
                         v{version.version_number}
-                        {version.version_number === annotation.current_version_number ? " (saat ini)" : ""}
+                        {version.version_number === annotation.current_version_number ? " (current)" : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -842,7 +842,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                 disabled={!canCompareVersions}
                 onClick={() => setDiffDialogOpen(true)}
               >
-                <GitCompareArrows className="h-3.5 w-3.5" /> Bandingkan
+                <GitCompareArrows className="h-3.5 w-3.5" /> Compare
               </Button>
             </div>
           )}
@@ -864,12 +864,12 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                   onClick={() => handleRollback(version.id)}
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
-                  {rollingVersionId === version.id ? "Rollback..." : "Rollback ke versi ini"}
+                  {rollingVersionId === version.id ? "Rolling back..." : "Roll back to this version"}
                 </Button>
               )}
             </div>
           ))}
-          {sortedVersions.length === 0 && <p className="text-xs text-muted-foreground">Belum ada riwayat versi.</p>}
+          {sortedVersions.length === 0 && <p className="text-xs text-muted-foreground">No version history yet.</p>}
         </CardContent>
       </Card>
 
@@ -877,10 +877,10 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              Perbandingan v{compareFromVersionNumber} → v{compareToVersionNumber}
+              Comparing v{compareFromVersionNumber} → v{compareToVersionNumber}
             </DialogTitle>
             <DialogDescription>
-              Teks yang dicoret merah dihapus, teks bergaris bawah hijau ditambahkan.
+              Red strikethrough text was removed, green underlined text was added.
             </DialogDescription>
           </DialogHeader>
           {canCompareVersions && (
@@ -896,7 +896,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-info" /> Komentar
+            <MessageSquare className="h-4 w-4 text-info" /> Comments
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -921,7 +921,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                           setReplyText("");
                         }}
                       >
-                        Balas
+                        Reply
                       </Button>
                       <Button
                         size="xs"
@@ -929,7 +929,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                         disabled={resolvingCommentId === comment.id}
                         onClick={() => handleResolveComment(comment.id)}
                       >
-                        {resolvingCommentId === comment.id ? "Menyelesaikan..." : "Resolve"}
+                        {resolvingCommentId === comment.id ? "Resolving..." : "Resolve"}
                       </Button>
                     </>
                   )}
@@ -939,11 +939,11 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                     <Textarea
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="Tulis balasan..."
+                      placeholder="Write a reply..."
                     />
                     <div className="flex gap-2">
                       <Button size="xs" onClick={() => handleReplySubmit(comment.id)} disabled={isSubmittingReply}>
-                        {isSubmittingReply ? "Mengirim..." : "Kirim"}
+                        {isSubmittingReply ? "Sending..." : "Send"}
                       </Button>
                       <Button
                         size="xs"
@@ -953,7 +953,7 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
                           setReplyText("");
                         }}
                       >
-                        Batal
+                        Cancel
                       </Button>
                     </div>
                   </div>
@@ -976,19 +976,19 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
               </div>
             ))}
             {(annotation.comments ?? []).length === 0 && (
-              <p className="text-xs text-muted-foreground">Belum ada komentar.</p>
+              <p className="text-xs text-muted-foreground">No comments yet.</p>
             )}
           </div>
           <div className="space-y-1.5 border-t border-border pt-3">
-            <Label htmlFor="new-comment">Tambah Komentar</Label>
+            <Label htmlFor="new-comment">Add Comment</Label>
             <Textarea
               id="new-comment"
               value={newCommentText}
               onChange={(e) => setNewCommentText(e.target.value)}
-              placeholder="Tulis komentar..."
+              placeholder="Write a comment..."
             />
             <Button size="sm" onClick={handleAddComment} disabled={isSubmittingComment || !newCommentText.trim()}>
-              {isSubmittingComment ? "Mengirim..." : "Kirim Komentar"}
+              {isSubmittingComment ? "Sending..." : "Send Comment"}
             </Button>
           </div>
         </CardContent>

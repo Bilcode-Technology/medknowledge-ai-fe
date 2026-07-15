@@ -29,7 +29,7 @@ export default function KnowledgeRepositoryPage() {
         const data = await apiFetch<Paginated<Annotation>>(`/knowledge-repository${search}`);
         setAnnotations(data.data);
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : "Gagal memuat knowledge repository.");
+        setError(err instanceof ApiError ? err.message : "Failed to load knowledge repository.");
       }
     }, 300);
 
@@ -44,14 +44,14 @@ export default function KnowledgeRepositoryPage() {
             <BookOpen className="h-4 w-4 text-primary" /> Knowledge Repository (M35)
           </CardTitle>
           <CardDescription className="text-xs">
-            Katalog interaksi obat yang sudah published &amp; tersinkron FHIR, lintas seluruh proyek.
+            Catalog of published, FHIR-synced drug interactions across all projects.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative w-80">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Cari nama obat..."
+              placeholder="Search drug name..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9 h-9 text-xs"
@@ -82,7 +82,7 @@ export default function KnowledgeRepositoryPage() {
             ))}
             {annotations.length === 0 && !error && (
               <p className="text-xs text-muted-foreground text-center py-8">
-                Belum ada interaksi published yang cocok dengan pencarian.
+                No published interactions match this search.
               </p>
             )}
           </div>

@@ -49,7 +49,7 @@ function CategorySection({
       const data = await apiFetch<Category[]>(`/${resourcePath}`);
       setCategories(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : `Gagal memuat ${title.toLowerCase()}.`);
+      setError(err instanceof ApiError ? err.message : `Failed to load ${title.toLowerCase()}.`);
     }
   }
 
@@ -80,7 +80,7 @@ function CategorySection({
       setCreateOpen(false);
       await loadCategories();
     } catch (err) {
-      setCreateError(err instanceof ApiError ? err.message : "Gagal membuat kategori.");
+      setCreateError(err instanceof ApiError ? err.message : "Failed to create category.");
     } finally {
       setIsSavingCreate(false);
     }
@@ -108,21 +108,21 @@ function CategorySection({
       setEditing(null);
       await loadCategories();
     } catch (err) {
-      setEditError(err instanceof ApiError ? err.message : "Gagal memperbarui kategori.");
+      setEditError(err instanceof ApiError ? err.message : "Failed to update category.");
     } finally {
       setIsSavingEdit(false);
     }
   }
 
   async function handleDelete(category: Category) {
-    if (!window.confirm(`Hapus kategori "${category.name}"? Tindakan ini permanen dan tidak bisa dibatalkan.`))
+    if (!window.confirm(`Delete category "${category.name}"? This action is permanent and cannot be undone.`))
       return;
     setError(null);
     try {
       await apiFetch(`/${resourcePath}/${category.id}`, { method: "DELETE" });
       await loadCategories();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menghapus kategori.");
+      setError(err instanceof ApiError ? err.message : "Failed to delete category.");
     }
   }
 
@@ -131,24 +131,24 @@ function CategorySection({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="text-sm">{title}</CardTitle>
-          <CardDescription className="text-xs">{categories.length} kategori terdaftar.</CardDescription>
+          <CardDescription className="text-xs">{categories.length} registered categories.</CardDescription>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger
             render={
               <Button size="sm" className="gap-1">
-                <Plus className="h-3.5 w-3.5" /> Kategori Baru
+                <Plus className="h-3.5 w-3.5" /> New Category
               </Button>
             }
           />
           <DialogContent>
             <form onSubmit={handleCreate}>
               <DialogHeader>
-                <DialogTitle>Tambah {title}</DialogTitle>
+                <DialogTitle>Add {title}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 py-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor={`${resourcePath}-create-name`}>Nama</Label>
+                  <Label htmlFor={`${resourcePath}-create-name`}>Name</Label>
                   <Input
                     id={`${resourcePath}-create-name`}
                     required
@@ -157,16 +157,16 @@ function CategorySection({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Induk (opsional)</Label>
+                  <Label>Parent (optional)</Label>
                   <Select
                     value={createForm.parentId}
                     onValueChange={(value) => setCreateForm((f) => ({ ...f, parentId: value as string }))}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tanpa induk" />
+                      <SelectValue placeholder="No parent" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tanpa induk (root)</SelectItem>
+                      <SelectItem value="">No parent (root)</SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={String(cat.id)}>
                           {cat.name}
@@ -179,7 +179,7 @@ function CategorySection({
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingCreate}>
-                  {isSavingCreate ? "Menyimpan..." : "Simpan"}
+                  {isSavingCreate ? "Saving..." : "Save"}
                 </Button>
               </DialogFooter>
             </form>
@@ -195,9 +195,9 @@ function CategorySection({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Induk</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Parent</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -225,7 +225,7 @@ function CategorySection({
             {categories.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-xs text-muted-foreground py-8">
-                  Belum ada kategori.
+                  No categories yet.
                 </TableCell>
               </TableRow>
             )}
@@ -243,11 +243,11 @@ function CategorySection({
           {editing && (
             <form onSubmit={handleEditSubmit}>
               <DialogHeader>
-                <DialogTitle>Edit Kategori — {editing.name}</DialogTitle>
+                <DialogTitle>Edit Category — {editing.name}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 py-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor={`${resourcePath}-edit-name`}>Nama</Label>
+                  <Label htmlFor={`${resourcePath}-edit-name`}>Name</Label>
                   <Input
                     id={`${resourcePath}-edit-name`}
                     required
@@ -256,16 +256,16 @@ function CategorySection({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Induk (opsional)</Label>
+                  <Label>Parent (optional)</Label>
                   <Select
                     value={editForm.parentId}
                     onValueChange={(value) => setEditForm((f) => ({ ...f, parentId: value as string }))}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tanpa induk" />
+                      <SelectValue placeholder="No parent" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tanpa induk (root)</SelectItem>
+                      <SelectItem value="">No parent (root)</SelectItem>
                       {categories
                         .filter((cat) => cat.id !== editing.id)
                         .map((cat) => (
@@ -280,7 +280,7 @@ function CategorySection({
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingEdit}>
-                  {isSavingEdit ? "Menyimpan..." : "Simpan"}
+                  {isSavingEdit ? "Saving..." : "Save"}
                 </Button>
               </DialogFooter>
             </form>
@@ -295,14 +295,14 @@ export default function AdminCategoriesPage() {
   return (
     <Tabs defaultValue="disease">
       <TabsList>
-        <TabsTrigger value="disease">Kategori Penyakit</TabsTrigger>
-        <TabsTrigger value="drug">Kategori Obat</TabsTrigger>
+        <TabsTrigger value="disease">Disease Categories</TabsTrigger>
+        <TabsTrigger value="drug">Drug Categories</TabsTrigger>
       </TabsList>
       <TabsContent value="disease" className="pt-4">
-        <CategorySection resourcePath="disease-categories" title="Kategori Penyakit" />
+        <CategorySection resourcePath="disease-categories" title="Disease Categories" />
       </TabsContent>
       <TabsContent value="drug" className="pt-4">
-        <CategorySection resourcePath="drug-categories" title="Kategori Obat" />
+        <CategorySection resourcePath="drug-categories" title="Drug Categories" />
       </TabsContent>
     </Tabs>
   );

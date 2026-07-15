@@ -32,7 +32,7 @@ export function VersionDiffView({ oldContent, newContent }: { oldContent: string
 
   return (
     <div className="space-y-2">
-      {!hasChanges && <p className="text-xs text-muted-foreground">Tidak ada perbedaan teks antara kedua versi ini.</p>}
+      {!hasChanges && <p className="text-xs text-muted-foreground">No text differences between these two versions.</p>}
       <p className="text-xs leading-relaxed whitespace-pre-wrap">
         {parts.map((part, index) => {
           if (part.removed) {

@@ -29,7 +29,7 @@ export function ProtectedShell({
   if (isLoading || !user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background text-muted-foreground text-sm">
-        Memuat...
+        Loading...
       </div>
     );
   }

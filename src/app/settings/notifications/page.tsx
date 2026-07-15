@@ -21,7 +21,7 @@ export default function NotificationSettingsPage() {
       const data = await apiFetch<NotificationPreferences>("/notification-preferences");
       setPreferences(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat preferensi notifikasi.");
+      setError(err instanceof ApiError ? err.message : "Failed to load notification preferences.");
     }
   }
 
@@ -43,7 +43,7 @@ export default function NotificationSettingsPage() {
       setPreferences(updated);
     } catch (err) {
       setPreferences(previous ?? null);
-      setError(err instanceof ApiError ? err.message : "Gagal menyimpan preferensi notifikasi.");
+      setError(err instanceof ApiError ? err.message : "Failed to save notification preferences.");
     } finally {
       setSavingChannel(null);
     }
@@ -60,10 +60,10 @@ export default function NotificationSettingsPage() {
       <Card className="max-w-lg">
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <Bell className="h-4 w-4 text-primary" /> Preferensi Notifikasi
+            <Bell className="h-4 w-4 text-primary" /> Notification Preferences
           </CardTitle>
           <CardDescription className="text-xs">
-            Atur kanal pengiriman notifikasi. Notifikasi in-app (bell) selalu aktif dan tidak bisa dimatikan.
+            Configure notification delivery channels. In-app (bell) notifications are always on and cannot be disabled.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">

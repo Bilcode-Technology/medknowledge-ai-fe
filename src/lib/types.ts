@@ -87,11 +87,11 @@ export type DistillationRun = {
 export type KfaCodeItem = { id: number; code: string; display: string };
 
 export const MANAGEMENT_CATEGORY_LABELS: Record<string, string> = {
-  monitor_closely: "Pantau ketat",
-  adjust_dose: "Sesuaikan dosis",
-  avoid_combination: "Hindari kombinasi",
-  contraindicated: "Kontraindikasi",
-  no_action: "Tidak perlu tindakan",
+  monitor_closely: "Monitor closely",
+  adjust_dose: "Adjust dose",
+  avoid_combination: "Avoid combination",
+  contraindicated: "Contraindicated",
+  no_action: "No action needed",
 };
 
 export type AnnotationVersion = {
@@ -145,10 +145,10 @@ export const REQUIRED_CHECKLIST_KEYS = [
 ] as const;
 
 export const CHECKLIST_LABELS: Record<(typeof REQUIRED_CHECKLIST_KEYS)[number], string> = {
-  interaction_confirmed_in_source: "Interaksi terkonfirmasi ada di sumber (guard false positive)",
-  no_missed_interactions: "Tidak ada interaksi yang terlewat (guard false negative)",
-  severity_evidence_finalized: "Severity & evidence grade sudah final",
-  citation_validated: "Sitasi sudah tervalidasi",
+  interaction_confirmed_in_source: "Interaction confirmed in source (false-positive guard)",
+  no_missed_interactions: "No interactions were missed (false-negative guard)",
+  severity_evidence_finalized: "Severity & evidence grade finalized",
+  citation_validated: "Citation validated",
 };
 
 // M32 — Diff Viewer: respons GET /annotations/{id}/arbitration.

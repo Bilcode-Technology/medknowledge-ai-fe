@@ -14,7 +14,7 @@ import type { Extraction, Paginated, Source } from "@/lib/types";
 // false supaya modul ini tidak pernah dievaluasi di sisi server saat build/SSR.
 const PdfCanvasViewer = dynamic(() => import("@/components/pdf-canvas-viewer"), {
   ssr: false,
-  loading: () => <p className="text-xs text-muted-foreground text-center py-10">Memuat PDF.js...</p>,
+  loading: () => <p className="text-xs text-muted-foreground text-center py-10">Loading PDF.js...</p>,
 });
 
 export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: string; sourceId: string }> }) {
@@ -46,7 +46,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
       // halaman lain untuk data yang belum punya endpoint tersaring).
       setExtractions(extractionsData.data.filter((extraction) => String(extraction.source?.id) === sourceId));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat data sumber/ekstraksi.");
+      setError(err instanceof ApiError ? err.message : "Failed to load source/extraction data.");
     }
   }
 
@@ -57,7 +57,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
       const buffer = await blob.arrayBuffer();
       setPdfData(buffer);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat berkas PDF dari server.");
+      setError(err instanceof ApiError ? err.message : "Failed to load PDF file from server.");
     } finally {
       setIsLoadingPdf(false);
     }
@@ -98,10 +98,10 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
     setHighlightedExtractionId(null);
   }
 
-  const documentTitle = source?.title ?? source?.original_filename ?? "Dokumen Sumber";
+  const documentTitle = source?.title ?? source?.original_filename ?? "Source Document";
 
   return (
-    <ProtectedShell breadcrumb={`Lihat PDF — ${documentTitle}`}>
+    <ProtectedShell breadcrumb={`View PDF — ${documentTitle}`}>
       {error && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">{error}</div>
       )}
@@ -116,7 +116,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
             <CardDescription className="text-xs">PDF.js Viewer (M15)</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto">
-            {isLoadingPdf && <p className="text-xs text-muted-foreground text-center py-10">Memuat berkas PDF...</p>}
+            {isLoadingPdf && <p className="text-xs text-muted-foreground text-center py-10">Loading PDF file...</p>}
             {!isLoadingPdf && pdfData && (
               <PdfCanvasViewer
                 data={pdfData}
@@ -127,7 +127,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
               />
             )}
             {!isLoadingPdf && !pdfData && !error && (
-              <p className="text-xs text-muted-foreground text-center py-10">Berkas PDF tidak tersedia.</p>
+              <p className="text-xs text-muted-foreground text-center py-10">PDF file not available.</p>
             )}
           </CardContent>
           <div className="shrink-0 flex items-center justify-center gap-3 border-t border-border p-3">
@@ -138,10 +138,10 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
               disabled={pageNumber <= 1}
               className="gap-1"
             >
-              <ChevronLeft className="h-3.5 w-3.5" /> Sebelumnya
+              <ChevronLeft className="h-3.5 w-3.5" /> Previous
             </Button>
             <span className="text-xs text-muted-foreground min-w-32 text-center">
-              Halaman {numPages > 0 ? pageNumber : "-"} dari {numPages || "-"}
+              Page {numPages > 0 ? pageNumber : "-"} of {numPages || "-"}
             </span>
             <Button
               size="sm"
@@ -150,7 +150,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
               disabled={pageNumber >= numPages}
               className="gap-1"
             >
-              Berikutnya <ChevronRight className="h-3.5 w-3.5" />
+              Next <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
         </Card>
@@ -159,13 +159,13 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
         <Card className="flex flex-col overflow-hidden lg:h-full">
           <CardHeader className="shrink-0">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Quote className="h-4 w-4 text-info" /> Bukti Ekstraksi (M16)
+              <Quote className="h-4 w-4 text-info" /> Extraction Evidence (M16)
             </CardTitle>
             <CardDescription className="text-xs">
-              Klik sebuah ekstraksi untuk lompat ke halamannya di PDF sekaligus menyorot posisi kalimat sitasinya
-              (dipetakan lewat koordinat text-layer PDF.js, M16). Catatan: OCR (M10) dan text-layer asli PDF adalah dua
-              hasil ekstraksi teks yang independen dari dokumen yang sama — kalau keduanya cukup berbeda, pencocokan
-              teks bisa meleset dan highlight tidak muncul (lompatan halaman tetap jalan seperti biasa).
+              Click an extraction to jump to its page in the PDF and highlight the citation sentence position
+              (mapped via PDF.js text-layer coordinates, M16). Note: OCR (M10) and the PDF&apos;s native text layer are
+              two independent text extractions of the same document — if they differ significantly, text matching
+              can miss and the highlight won&apos;t appear (page jump still works as usual).
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto space-y-3">
@@ -199,7 +199,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
                     </Badge>
                   )}
                   {extraction.page_number && (
-                    <Badge className="bg-info/10 text-info border-info/20 text-[10px]">Hal. {extraction.page_number}</Badge>
+                    <Badge className="bg-info/10 text-info border-info/20 text-[10px]">Page {extraction.page_number}</Badge>
                   )}
                 </div>
                 {extraction.citation_text && (
@@ -210,7 +210,7 @@ export default function SourcePdfViewerPage({ params }: { params: Promise<{ id: 
               </button>
             ))}
             {extractions.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center py-6">Belum ada ekstraksi untuk dokumen ini.</p>
+              <p className="text-xs text-muted-foreground text-center py-6">No extractions for this document yet.</p>
             )}
           </CardContent>
         </Card>

@@ -38,7 +38,7 @@ export default function AdminPlaygroundPage() {
         setModel((current) => current || data.data[0].id);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat daftar model AI.");
+      setError(err instanceof ApiError ? err.message : "Failed to load AI model list.");
     }
   }
 
@@ -47,7 +47,7 @@ export default function AdminPlaygroundPage() {
       const data = await apiFetch<CostSummaryRow[]>("/ai-playground/cost-summary");
       setCostSummary(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat ringkasan biaya.");
+      setError(err instanceof ApiError ? err.message : "Failed to load cost summary.");
     }
   }
 
@@ -74,7 +74,7 @@ export default function AdminPlaygroundPage() {
       setHistory((prev) => [response, ...prev]);
       await loadCostSummary();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memanggil AI Playground.");
+      setError(err instanceof ApiError ? err.message : "Failed to call AI Playground.");
     } finally {
       setIsSending(false);
     }
@@ -94,7 +94,7 @@ export default function AdminPlaygroundPage() {
             <Bot className="h-4 w-4 text-primary" /> AI Playground (M48)
           </CardTitle>
           <CardDescription className="text-xs">
-            Uji coba prompt langsung ke model AI yang dikonfigurasi lewat LiteLLM.
+            Test prompts directly against AI models configured via LiteLLM.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -103,7 +103,7 @@ export default function AdminPlaygroundPage() {
               <Label>Model</Label>
               <Select value={model} onValueChange={(value) => setModel(value as string)}>
                 <SelectTrigger className="w-full sm:w-64">
-                  <SelectValue placeholder="Pilih model" />
+                  <SelectValue placeholder="Select model" />
                 </SelectTrigger>
                 <SelectContent>
                   {models.map((m) => (
@@ -115,11 +115,11 @@ export default function AdminPlaygroundPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="playground-system-prompt">System Prompt (opsional)</Label>
+              <Label htmlFor="playground-system-prompt">System Prompt (optional)</Label>
               <Textarea
                 id="playground-system-prompt"
                 rows={2}
-                placeholder="mis. Anda adalah asisten farmakologi klinis."
+                placeholder="e.g. You are a clinical pharmacology assistant."
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
               />
@@ -130,14 +130,14 @@ export default function AdminPlaygroundPage() {
                 id="playground-prompt"
                 rows={4}
                 required
-                placeholder="Tulis prompt untuk model AI..."
+                placeholder="Write a prompt for the AI model..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
               />
             </div>
             <div className="flex items-center justify-between gap-3">
               <p className="text-[11px] text-muted-foreground">
-                Setiap pengiriman memanggil model AI sungguhan dan membebankan biaya token nyata.
+                Every submission calls a real AI model and incurs real token cost.
               </p>
               <div className="flex gap-2 shrink-0">
                 {/* M50 — "Mulai dari AI Playground": lanjutkan prompt ini ke pipeline distilasi. */}
@@ -147,10 +147,10 @@ export default function AdminPlaygroundPage() {
                   render={<Link href={`/distillation${prompt.trim() ? `?prompt=${encodeURIComponent(prompt)}` : ""}`} />}
                   className="gap-1"
                 >
-                  <Sparkles className="h-3.5 w-3.5" /> Mulai distilasi dari prompt ini
+                  <Sparkles className="h-3.5 w-3.5" /> Start distillation from this prompt
                 </Button>
                 <Button type="submit" size="sm" disabled={isSending || !model} className="gap-1">
-                  <Send className="h-3.5 w-3.5" /> {isSending ? "Mengirim..." : "Kirim"}
+                  <Send className="h-3.5 w-3.5" /> {isSending ? "Sending..." : "Send"}
                 </Button>
               </div>
             </div>
@@ -160,8 +160,8 @@ export default function AdminPlaygroundPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Riwayat Respons</CardTitle>
-          <CardDescription className="text-xs">Hasil paling baru ditampilkan di atas.</CardDescription>
+          <CardTitle className="text-sm">Response History</CardTitle>
+          <CardDescription className="text-xs">Most recent results shown first.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="divide-y divide-border">
@@ -180,7 +180,7 @@ export default function AdminPlaygroundPage() {
             ))}
             {history.length === 0 && (
               <p className="text-xs text-muted-foreground text-center py-8">
-                Belum ada percakapan. Kirim prompt di atas untuk memulai.
+                No conversations yet. Send a prompt above to start.
               </p>
             )}
           </div>
@@ -190,7 +190,7 @@ export default function AdminPlaygroundPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-success" /> Ringkasan Biaya per Model
+            <DollarSign className="h-4 w-4 text-success" /> Cost Summary per Model
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -198,9 +198,9 @@ export default function AdminPlaygroundPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Model</TableHead>
-                <TableHead>Jumlah Panggilan</TableHead>
-                <TableHead>Total Token</TableHead>
-                <TableHead>Total Biaya</TableHead>
+                <TableHead>Call Count</TableHead>
+                <TableHead>Total Tokens</TableHead>
+                <TableHead>Total Cost</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -215,7 +215,7 @@ export default function AdminPlaygroundPage() {
               {costSummary.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-xs text-muted-foreground py-8">
-                    Belum ada data biaya.
+                    No cost data yet.
                   </TableCell>
                 </TableRow>
               )}

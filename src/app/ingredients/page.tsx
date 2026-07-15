@@ -45,16 +45,16 @@ export default function IngredientsPage() {
   }, [query]);
 
   return (
-    <ProtectedShell breadcrumb="Tahap 1 — Bahan Aktif (KFA)">
+    <ProtectedShell breadcrumb="Stage 1 — Ingredients (KFA)">
       <div className="space-y-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Pill className="h-4 w-4 text-primary" /> Bahan Aktif — Kode KFA (Tahap 1)
+              <Pill className="h-4 w-4 text-primary" /> Active Ingredients — KFA Codes (Stage 1)
             </CardTitle>
             <CardDescription className="text-xs">
-              Cari zat aktif pada dataset KFA resmi (Kamus Farmasi & Alat Kesehatan, Kemenkes). Kode ini menjadi identitas
-              interactant pada ClinicalUseDefinition — bukan free text, bukan dikarang AI.
+              Search active ingredients in the official KFA dataset (Kamus Farmasi & Alat Kesehatan, Kemenkes). This code
+              becomes the interactant identity on ClinicalUseDefinition — not free text, not made up by AI.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -63,21 +63,21 @@ export default function IngredientsPage() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari KFA... (mis. warfarin)"
+                placeholder="Search KFA... (e.g. warfarin)"
                 className="pl-8"
               />
             </div>
             {searched && kfaResults.length === 0 && (
               <p className="text-xs text-warning">
-                Tidak ada hasil. Bila dataset KFA belum diimpor, jalankan <code>php artisan kfa:import</code> di server —
-                sementara itu distilasi tetap bisa berjalan dengan nama zat free-text (kode di-assign belakangan).
+                No results. If the KFA dataset hasn&apos;t been imported yet, run <code>php artisan kfa:import</code> on the
+                server — distillation still works with a free-text substance name in the meantime (code assigned later).
               </p>
             )}
             {kfaResults.length > 0 && (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Kode KFA</TableHead>
+                    <TableHead>KFA Code</TableHead>
                     <TableHead>Display</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -96,19 +96,19 @@ export default function IngredientsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Entitas Obat Dikenal (M22-M25)</CardTitle>
+            <CardTitle className="text-sm">Known Drug Entities (M22-M25)</CardTitle>
             <CardDescription className="text-xs">
-              Zat aktif yang sudah masuk sistem beserta kode terminologinya (KFA / RxNorm / ATC).
+              Active ingredients already in the system along with their terminology codes (KFA / RxNorm / ATC).
             </CardDescription>
           </CardHeader>
           <CardContent>
             {entities.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Belum ada entitas obat.</p>
+              <p className="text-xs text-muted-foreground">No drug entities yet.</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nama Kanonis</TableHead>
+                    <TableHead>Canonical Name</TableHead>
                     <TableHead>KFA</TableHead>
                     <TableHead>RxNorm</TableHead>
                     <TableHead>ATC</TableHead>
@@ -124,7 +124,7 @@ export default function IngredientsPage() {
                             {entity.kfa_code}
                           </Badge>
                         ) : (
-                          <span className="text-[10px] text-muted-foreground">belum</span>
+                          <span className="text-[10px] text-muted-foreground">none</span>
                         )}
                       </TableCell>
                       <TableCell className="text-xs font-mono">{entity.rxnorm_code ?? "-"}</TableCell>

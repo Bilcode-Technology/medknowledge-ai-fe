@@ -21,7 +21,7 @@ export function NotificationBell() {
       const data = await apiFetch<Paginated<NotificationItem>>("/notifications");
       setNotifications(data.data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat notifikasi.");
+      setError(err instanceof ApiError ? err.message : "Failed to load notifications.");
     }
   }
 
@@ -47,7 +47,7 @@ export function NotificationBell() {
       await apiFetch(`/notifications/${id}/read`, { method: "POST" });
       await loadNotifications();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menandai notifikasi.");
+      setError(err instanceof ApiError ? err.message : "Failed to mark notification as read.");
     } finally {
       setMarkingId(null);
     }
@@ -62,7 +62,7 @@ export function NotificationBell() {
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="relative rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        aria-label="Notifikasi"
+        aria-label="Notifications"
       >
         <Bell className="h-4.5 w-4.5" />
         {unreadCount > 0 && (
@@ -75,15 +75,15 @@ export function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
-            <span className="text-xs font-semibold">Notifikasi</span>
+            <span className="text-xs font-semibold">Notifications</span>
             {unreadCount > 0 && (
-              <span className="text-[10px] text-muted-foreground">{unreadCount} belum dibaca</span>
+              <span className="text-[10px] text-muted-foreground">{unreadCount} unread</span>
             )}
           </div>
           <div className="max-h-96 overflow-y-auto">
             {error && <p className="px-3 py-2 text-[10px] text-destructive">{error}</p>}
             {recent.length === 0 && !error && (
-              <p className="px-3 py-6 text-center text-xs text-muted-foreground">Tidak ada notifikasi.</p>
+              <p className="px-3 py-6 text-center text-xs text-muted-foreground">No notifications.</p>
             )}
             {recent.map((notification) => {
               const isUnread = notification.read_at === null;

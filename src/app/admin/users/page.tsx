@@ -59,7 +59,7 @@ export default function AdminUsersPage() {
       setUsersData(data);
       data.data.forEach((row) => mergeRoleId(row.role?.code, row.role?.id));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat daftar pengguna.");
+      setError(err instanceof ApiError ? err.message : "Failed to load user list.");
     }
   }
 
@@ -81,7 +81,7 @@ export default function AdminUsersPage() {
     const roleId = roleIdMap[createForm.roleCode];
     if (!createForm.roleCode || roleId == null) {
       setCreateError(
-        "ID role ini belum diketahui sistem (belum pernah dipakai pengguna manapun, dan tidak ada endpoint GET /api/roles). Pilih role lain.",
+        "This role's ID is not yet known to the system (it hasn't been used by any user yet, and there is no GET /api/roles endpoint). Pick another role.",
       );
       return;
     }
@@ -101,7 +101,7 @@ export default function AdminUsersPage() {
       setCreateOpen(false);
       await loadUsers(page);
     } catch (err) {
-      setCreateError(err instanceof ApiError ? err.message : "Gagal membuat pengguna.");
+      setCreateError(err instanceof ApiError ? err.message : "Failed to create user.");
     } finally {
       setIsSavingCreate(false);
     }
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
       const roleId = roleIdMap[editForm.roleCode];
       if (roleId == null) {
         setEditError(
-          "ID role ini belum diketahui sistem (belum pernah dipakai pengguna manapun). Pilih role lain.",
+          "This role's ID is not yet known to the system (it hasn't been used by any user yet). Pick another role.",
         );
         return;
       }
@@ -151,20 +151,20 @@ export default function AdminUsersPage() {
       setEditingUser(null);
       await loadUsers(page);
     } catch (err) {
-      setEditError(err instanceof ApiError ? err.message : "Gagal memperbarui pengguna.");
+      setEditError(err instanceof ApiError ? err.message : "Failed to update user.");
     } finally {
       setIsSavingEdit(false);
     }
   }
 
   async function handleDeactivate(row: AdminUser) {
-    if (!window.confirm(`Nonaktifkan akun "${row.name}"? Akun tidak akan bisa login lagi.`)) return;
+    if (!window.confirm(`Deactivate account "${row.name}"? The account will no longer be able to sign in.`)) return;
     setError(null);
     try {
       await apiFetch(`/users/${row.id}`, { method: "DELETE" });
       await loadUsers(page);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menonaktifkan pengguna.");
+      setError(err instanceof ApiError ? err.message : "Failed to deactivate user.");
     }
   }
 
@@ -179,27 +179,27 @@ export default function AdminUsersPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
-            <CardTitle className="text-sm">Manajemen Pengguna (M49)</CardTitle>
+            <CardTitle className="text-sm">User Management (M49)</CardTitle>
             <CardDescription className="text-xs">
-              {usersData ? `${usersData.total} pengguna terdaftar.` : "Memuat daftar pengguna..."}
+              {usersData ? `${usersData.total} registered users.` : "Loading user list..."}
             </CardDescription>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger
               render={
                 <Button size="sm" className="gap-1">
-                  <Plus className="h-3.5 w-3.5" /> Pengguna Baru
+                  <Plus className="h-3.5 w-3.5" /> New User
                 </Button>
               }
             />
             <DialogContent>
               <form onSubmit={handleCreate}>
                 <DialogHeader>
-                  <DialogTitle>Tambah Pengguna</DialogTitle>
+                  <DialogTitle>Add User</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3 py-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="new-user-name">Nama</Label>
+                    <Label htmlFor="new-user-name">Name</Label>
                     <Input
                       id="new-user-name"
                       required
@@ -235,7 +235,7 @@ export default function AdminUsersPage() {
                       onValueChange={(value) => setCreateForm((f) => ({ ...f, roleCode: value as string }))}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih role" />
+                        <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
                         {ROLE_OPTIONS.map((role) => (
@@ -250,7 +250,7 @@ export default function AdminUsersPage() {
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSavingCreate}>
-                    {isSavingCreate ? "Menyimpan..." : "Simpan"}
+                    {isSavingCreate ? "Saving..." : "Save"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -261,11 +261,11 @@ export default function AdminUsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -274,7 +274,7 @@ export default function AdminUsersPage() {
                   <TableCell className="font-medium text-foreground">
                     {row.name}
                     {row.id === currentUser?.id && (
-                      <Badge className="ml-2 bg-muted text-muted-foreground border-border text-[10px]">Anda</Badge>
+                      <Badge className="ml-2 bg-muted text-muted-foreground border-border text-[10px]">You</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{row.email}</TableCell>
@@ -285,9 +285,9 @@ export default function AdminUsersPage() {
                   </TableCell>
                   <TableCell>
                     {row.is_active ? (
-                      <Badge className="bg-success/10 text-success border-success/20 text-[10px]">Aktif</Badge>
+                      <Badge className="bg-success/10 text-success border-success/20 text-[10px]">Active</Badge>
                     ) : (
-                      <Badge className="bg-muted text-muted-foreground border-border text-[10px]">Nonaktif</Badge>
+                      <Badge className="bg-muted text-muted-foreground border-border text-[10px]">Inactive</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -312,7 +312,7 @@ export default function AdminUsersPage() {
               {usersData && usersData.data.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-xs text-muted-foreground py-8">
-                    Tidak ada pengguna.
+                    No users.
                   </TableCell>
                 </TableRow>
               )}
@@ -322,7 +322,7 @@ export default function AdminUsersPage() {
           {usersData && usersData.last_page > 1 && (
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>
-                Halaman {usersData.current_page} dari {usersData.last_page}
+                Page {usersData.current_page} of {usersData.last_page}
               </span>
               <div className="flex gap-1">
                 <Button
@@ -357,11 +357,11 @@ export default function AdminUsersPage() {
           {editingUser && editForm && (
             <form onSubmit={handleEditSubmit}>
               <DialogHeader>
-                <DialogTitle>Edit Pengguna — {editingUser.name}</DialogTitle>
+                <DialogTitle>Edit User — {editingUser.name}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 py-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-user-name">Nama</Label>
+                  <Label htmlFor="edit-user-name">Name</Label>
                   <Input
                     id="edit-user-name"
                     required
@@ -380,12 +380,12 @@ export default function AdminUsersPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-user-password">Password Baru (opsional)</Label>
+                  <Label htmlFor="edit-user-password">New Password (optional)</Label>
                   <Input
                     id="edit-user-password"
                     type="password"
                     minLength={8}
-                    placeholder="Biarkan kosong bila tidak diubah"
+                    placeholder="Leave blank if unchanged"
                     value={editForm.password}
                     onChange={(e) => setEditForm((f) => (f ? { ...f, password: e.target.value } : f))}
                   />
@@ -399,7 +399,7 @@ export default function AdminUsersPage() {
                     }
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih role" />
+                      <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLE_OPTIONS.map((role) => (
@@ -417,19 +417,19 @@ export default function AdminUsersPage() {
                       setEditForm((f) => (f ? { ...f, isActive: checked === true } : f))
                     }
                   />
-                  <span>Akun aktif</span>
+                  <span>Account active</span>
                 </Label>
                 {editingUser.id === currentUser?.id && (
                   <p className="text-[11px] text-muted-foreground">
-                    Anda tidak bisa menonaktifkan akun sendiri atau mengubah role akun sendiri — backend akan
-                    menolak perubahan tersebut.
+                    You cannot deactivate your own account or change your own role — the backend will reject
+                    that change.
                   </p>
                 )}
                 {editError && <p className="text-xs text-destructive">{editError}</p>}
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingEdit}>
-                  {isSavingEdit ? "Menyimpan..." : "Simpan"}
+                  {isSavingEdit ? "Saving..." : "Save"}
                 </Button>
               </DialogFooter>
             </form>

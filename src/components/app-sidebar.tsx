@@ -22,9 +22,9 @@ import { useAuth } from "@/lib/auth-context";
 const menuItems = [
   { title: "Dashboard", icon: Activity, url: "/" },
   // M50 — jalur utama: distilasi knowledge DDI dari AI model (ingredient-first).
-  { title: "Distilasi AI", icon: Sparkles, url: "/distillation" },
+  { title: "AI Distillation", icon: Sparkles, url: "/distillation" },
   // Tahap 1 (diagram workflow) — akuisisi bahan aktif ber-kode KFA.
-  { title: "Bahan Aktif (KFA)", icon: Pill, url: "/ingredients" },
+  { title: "Ingredients (KFA)", icon: Pill, url: "/ingredients" },
   { title: "Knowledge Repository", icon: BookOpen, url: "/knowledge-repository" },
   { title: "Reports", icon: BarChart3, url: "/reports" },
   { title: "Search", icon: Search, url: "/search" },
