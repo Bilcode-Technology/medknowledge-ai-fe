@@ -23,3 +23,11 @@ export const ROLE_OPTIONS: { code: string; label: string }[] = [
 export const ROLE_LABELS: Record<string, string> = Object.fromEntries(
   ROLE_OPTIONS.map((role) => [role.code, role.label]),
 );
+
+// Backend (EnsureUserHasRole) selalu meloloskan admin di semua gate role —
+// helper ini dipakai supaya UI konsisten: admin melihat & bisa memicu semua
+// aksi role-spesifik (verifikasi apoteker, review senior, arbitrase) tanpa
+// perlu berganti akun saat testing/demo.
+export function isAdmin(user: { role?: { code: string } | null } | null | undefined): boolean {
+  return user?.role?.code === "admin";
+}

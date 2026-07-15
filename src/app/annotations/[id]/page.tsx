@@ -42,6 +42,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiFetch, ApiError } from "@/lib/api";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { useAuth } from "@/lib/auth-context";
+import { isAdmin } from "@/lib/roles";
 import {
   Annotation,
   ArbitrationDiff,
@@ -195,7 +196,9 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const isArbiterTurn = user?.role?.code === "arbiter" && annotation?.status === "disputed";
+  // Admin selalu bisa memicu aksi role apa pun (lihat lib/roles.ts isAdmin) —
+  // supaya testing/demo tidak perlu berganti akun untuk tiap tahap review.
+  const isArbiterTurn = (user?.role?.code === "arbiter" || isAdmin(user)) && annotation?.status === "disputed";
 
   useEffect(() => {
     if (!isArbiterTurn) {
@@ -221,8 +224,8 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
   const drugPairLabel = `${drugALabel} × ${drugBLabel}`;
 
   const canEditContent = annotation.status === "draft" || annotation.status === "revision_requested";
-  const isPharmacistTurn = user?.role?.code === "pharmacist" && annotation.status === "draft";
-  const isSeniorTurn = user?.role?.code === "senior_reviewer" && annotation.status === "senior_review";
+  const isPharmacistTurn = (user?.role?.code === "pharmacist" || isAdmin(user)) && annotation.status === "draft";
+  const isSeniorTurn = (user?.role?.code === "senior_reviewer" || isAdmin(user)) && annotation.status === "senior_review";
   const noActionForUser = !isPharmacistTurn && !isSeniorTurn && !isArbiterTurn;
   const note = pendingRoleNote(annotation.status);
 
