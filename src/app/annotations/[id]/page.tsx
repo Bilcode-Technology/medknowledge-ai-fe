@@ -16,6 +16,7 @@ import {
   Save,
   Scale,
   ShieldCheck,
+  Sparkles,
   XCircle,
 } from "lucide-react";
 import { ProtectedShell } from "@/components/protected-shell";
@@ -45,6 +46,7 @@ import {
   Annotation,
   ArbitrationDiff,
   CHECKLIST_LABELS,
+  MANAGEMENT_CATEGORY_LABELS,
   REQUIRED_CHECKLIST_KEYS,
 } from "@/lib/types";
 
@@ -434,6 +436,67 @@ export default function AnnotationDetailPage({ params }: { params: Promise<{ id:
           </div>
         </CardHeader>
       </Card>
+
+      {/* 1b. M50 — provenans distilasi AI: annotation ini TIDAK berasal dari dokumen
+          (tidak ada PDF/sitasi halaman), melainkan dari knowledge AI model yang
+          sudah dikonfirmasi manusia. Reviewer memverifikasi 5 field + referensi. */}
+      {annotation.extraction.origin === "ai_distillation" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" /> Sumber: Distilasi AI (M50)
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Interaksi ini didistilasi dari AI model (run #{annotation.extraction.distillation_run_id ?? "-"}), bukan
+              diekstrak dari dokumen — verifikasi kebenaran klinis & referensi di bawah, bukan sitasi halaman PDF.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-xs">
+            <div className="grid gap-2 md:grid-cols-2">
+              <p>
+                <span className="text-muted-foreground">Interactant 1:</span>{" "}
+                <span className="font-medium">{annotation.extraction.raw_drug_a_text}</span>
+                {annotation.extraction.kfa_code_a && (
+                  <Badge className="ml-2 bg-success/10 text-success border-success/20 text-[10px] font-mono">
+                    KFA {annotation.extraction.kfa_code_a}
+                  </Badge>
+                )}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Interactant 2:</span>{" "}
+                <span className="font-medium">{annotation.extraction.raw_drug_b_text}</span>
+                {annotation.extraction.kfa_code_b && (
+                  <Badge className="ml-2 bg-success/10 text-success border-success/20 text-[10px] font-mono">
+                    KFA {annotation.extraction.kfa_code_b}
+                  </Badge>
+                )}
+              </p>
+            </div>
+            {annotation.extraction.effect && (
+              <p>
+                <span className="text-muted-foreground">Effect:</span> {annotation.extraction.effect}
+              </p>
+            )}
+            {annotation.extraction.management && (
+              <p>
+                <span className="text-muted-foreground">Management:</span> {annotation.extraction.management}
+                {annotation.extraction.management_category && (
+                  <Badge className="ml-2 bg-warning/10 text-warning border-warning/20 text-[10px]">
+                    {MANAGEMENT_CATEGORY_LABELS[annotation.extraction.management_category] ??
+                      annotation.extraction.management_category}
+                  </Badge>
+                )}
+              </p>
+            )}
+            {annotation.extraction.reference_text && (
+              <p>
+                <span className="text-muted-foreground">Reference (atribusi AI — wajib diverifikasi):</span>{" "}
+                {annotation.extraction.reference_text}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* 2. Konten */}
       <Card>

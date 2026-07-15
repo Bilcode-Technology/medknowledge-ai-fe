@@ -90,6 +90,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [extractions, setExtractions] = useState<Extraction[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  // M50 — default referensi simpan-saja; ekstraksi dokumen kini opsional (opt-in).
+  const [referenceOnly, setReferenceOnly] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function loadData() {
@@ -123,6 +125,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("reference_only", referenceOnly ? "1" : "0");
       await apiFetch(`/projects/${id}/sources`, { method: "POST", body: formData });
       if (fileInputRef.current) fileInputRef.current.value = "";
       await loadData();
@@ -165,21 +168,34 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
-                <FileUp className="h-4 w-4 text-primary" /> Unggah Dokumen Sumber
+                <FileUp className="h-4 w-4 text-primary" /> Unggah Dokumen Referensi (Opsional)
               </CardTitle>
               <CardDescription className="text-xs">
-                PDF/RIS, maksimal 15MB. OCR (M10), auto-metadata (M11), dan validasi AI (M12) berjalan otomatis setelah unggah.
+                PDF/RIS, maksimal 15MB. Default: disimpan sebagai referensi saja (M50) — knowledge DDI didistilasi dari AI
+                model, bukan dari isi dokumen. Nonaktifkan centang untuk menjalankan pipeline ekstraksi dokumen penuh
+                (OCR M10 → validasi M12 → ekstraksi M14).
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleUpload} className="flex items-end gap-3">
-                <div className="flex-1 space-y-1.5">
-                  <Label htmlFor="file">File</Label>
-                  <Input id="file" type="file" accept=".pdf,.ris" ref={fileInputRef} required />
+              <form onSubmit={handleUpload} className="space-y-3">
+                <div className="flex items-end gap-3">
+                  <div className="flex-1 space-y-1.5">
+                    <Label htmlFor="file">File</Label>
+                    <Input id="file" type="file" accept=".pdf,.ris" ref={fileInputRef} required />
+                  </div>
+                  <Button type="submit" disabled={isUploading}>
+                    {isUploading ? "Mengunggah..." : "Unggah"}
+                  </Button>
                 </div>
-                <Button type="submit" disabled={isUploading}>
-                  {isUploading ? "Mengunggah..." : "Unggah"}
-                </Button>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={referenceOnly}
+                    onChange={(e) => setReferenceOnly(e.target.checked)}
+                    className="h-3.5 w-3.5 accent-primary"
+                  />
+                  Simpan sebagai referensi saja (tanpa OCR/ekstraksi)
+                </label>
               </form>
             </CardContent>
           </Card>

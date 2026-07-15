@@ -27,6 +27,14 @@ type AdminNavItem = {
 const ADMIN_NAV: AdminNavItem[] = [
   { title: "Pengguna", href: "/admin/users", breadcrumb: "Manajemen Pengguna", roles: ["admin"] },
   {
+    // Tahap 0 — Penetapan Standar: severity schema, evidence grading, template
+    // anotasi (jawaban "Tahap 0 ada dimana?" — sebelumnya API-only, tanpa UI).
+    title: "Standar (Tahap 0)",
+    href: "/admin/standards",
+    breadcrumb: "Tahap 0 — Penetapan Standar",
+    roles: ["admin", "project_manager"],
+  },
+  {
     title: "Kategori",
     href: "/admin/categories",
     breadcrumb: "Kategori Penyakit & Obat",

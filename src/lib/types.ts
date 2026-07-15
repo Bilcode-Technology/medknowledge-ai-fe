@@ -56,6 +56,42 @@ export type Extraction = {
   evidence_grade: { id: number; code: string } | null;
   source?: Source;
   annotation?: { id: number; status: string } | null;
+  // M50 — AI Knowledge Distillation (5-field ClinicalUseDefinition).
+  origin?: "document" | "ai_distillation";
+  distillation_run_id?: number | null;
+  effect?: string | null;
+  management?: string | null;
+  management_category?: string | null;
+  reference_text?: string | null;
+  kfa_code_a?: string | null;
+  kfa_code_b?: string | null;
+};
+
+// M50 — AI Knowledge Distillation run (ingredient-first).
+export type DistillationRun = {
+  id: number;
+  ingredient_name: string;
+  ingredient_kfa_code: string | null;
+  counterpart_name: string | null;
+  counterpart_kfa_code: string | null;
+  model: string;
+  status: "queued" | "running" | "completed" | "failed";
+  error: string | null;
+  total_tokens: number | null;
+  cost_usd: string | null;
+  created_at: string;
+  user?: { id: number; name: string };
+  extractions?: Extraction[];
+};
+
+export type KfaCodeItem = { id: number; code: string; display: string };
+
+export const MANAGEMENT_CATEGORY_LABELS: Record<string, string> = {
+  monitor_closely: "Pantau ketat",
+  adjust_dose: "Sesuaikan dosis",
+  avoid_combination: "Hindari kombinasi",
+  contraindicated: "Kontraindikasi",
+  no_action: "Tidak perlu tindakan",
 };
 
 export type AnnotationVersion = {

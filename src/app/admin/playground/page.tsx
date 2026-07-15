@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bot, DollarSign, Send } from "lucide-react";
+import Link from "next/link";
+import { Bot, DollarSign, Send, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -138,9 +139,20 @@ export default function AdminPlaygroundPage() {
               <p className="text-[11px] text-muted-foreground">
                 Setiap pengiriman memanggil model AI sungguhan dan membebankan biaya token nyata.
               </p>
-              <Button type="submit" size="sm" disabled={isSending || !model} className="gap-1 shrink-0">
-                <Send className="h-3.5 w-3.5" /> {isSending ? "Mengirim..." : "Kirim"}
-              </Button>
+              <div className="flex gap-2 shrink-0">
+                {/* M50 — "Mulai dari AI Playground": lanjutkan prompt ini ke pipeline distilasi. */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  render={<Link href={`/distillation${prompt.trim() ? `?prompt=${encodeURIComponent(prompt)}` : ""}`} />}
+                  className="gap-1"
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> Mulai distilasi dari prompt ini
+                </Button>
+                <Button type="submit" size="sm" disabled={isSending || !model} className="gap-1">
+                  <Send className="h-3.5 w-3.5" /> {isSending ? "Mengirim..." : "Kirim"}
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>

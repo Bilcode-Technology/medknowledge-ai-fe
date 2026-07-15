@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, BarChart3, Bell, BookOpen, Cpu, LogOut, Search, Settings } from "lucide-react";
+import { Activity, BarChart3, Bell, BookOpen, Cpu, LogOut, Pill, Search, Settings, Sparkles } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +21,10 @@ import { useAuth } from "@/lib/auth-context";
 // — lihat SCOPE.md/README frontend untuk daftar modul yang belum ada UI-nya.
 const menuItems = [
   { title: "Dashboard", icon: Activity, url: "/" },
+  // M50 — jalur utama: distilasi knowledge DDI dari AI model (ingredient-first).
+  { title: "Distilasi AI", icon: Sparkles, url: "/distillation" },
+  // Tahap 1 (diagram workflow) — akuisisi bahan aktif ber-kode KFA.
+  { title: "Bahan Aktif (KFA)", icon: Pill, url: "/ingredients" },
   { title: "Knowledge Repository", icon: BookOpen, url: "/knowledge-repository" },
   { title: "Reports", icon: BarChart3, url: "/reports" },
   { title: "Search", icon: Search, url: "/search" },
