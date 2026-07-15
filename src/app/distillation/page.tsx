@@ -59,8 +59,10 @@ function DistillationPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // M50 — hanya interactant1 yang ditentukan manusia; interactant2 SELALU
+  // didistilasi AI (sebanyak yang diketahui model), bukan input user — lihat
+  // catatan Pak Amin: "interactant keduanya jangan kita tentukan".
   const [ingredient, setIngredient] = useState({ name: "", kfa: null as string | null });
-  const [counterpart, setCounterpart] = useState({ name: "", kfa: null as string | null });
   const [model, setModel] = useState("gpt-4o");
   const [promptOverride, setPromptOverride] = useState(searchParams.get("prompt") ?? "");
 
@@ -96,8 +98,6 @@ function DistillationPageContent() {
         body: JSON.stringify({
           ingredient_name: ingredient.name,
           ingredient_kfa_code: ingredient.kfa,
-          counterpart_name: counterpart.name.trim() || null,
-          counterpart_kfa_code: counterpart.kfa,
           model,
           prompt_override: promptOverride.trim() || null,
         }),
@@ -118,8 +118,8 @@ function DistillationPageContent() {
               <Sparkles className="h-4 w-4 text-primary" /> Distilasi Knowledge AI (M50)
             </CardTitle>
             <CardDescription className="text-xs">
-              Distilasikan pengetahuan drug-drug interaction langsung dari AI model — pilih zat aktif (kode KFA), jalankan
-              prompt, lalu konfirmasi hasil 5-field (interactant, effect, management, reference) ke validasi apoteker.
+              Pilih satu zat aktif (kode KFA) — AI mendistilasi sendiri semua pasangan interaksi yang ia ketahui, lalu
+              hasilnya jadi kartu 5-field (interactant, effect, management, reference) untuk dikonfirmasi ke validasi apoteker.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -155,20 +155,19 @@ function DistillationPageContent() {
                     </SelectContent>
                   </Select>
                 </div>
-                <KfaIngredientPicker
-                  label="Zat aktif (interactant 1) *"
-                  name={ingredient.name}
-                  kfaCode={ingredient.kfa}
-                  onChange={(name, kfa) => setIngredient({ name, kfa })}
-                  placeholder="mis. paracetamol"
-                />
-                <KfaIngredientPicker
-                  label="Lawan interaksi (interactant 2, opsional — kosongkan untuk semua interaksi)"
-                  name={counterpart.name}
-                  kfaCode={counterpart.kfa}
-                  onChange={(name, kfa) => setCounterpart({ name, kfa })}
-                  placeholder="mis. warfarin"
-                />
+                <div className="md:col-span-2">
+                  <KfaIngredientPicker
+                    label="Zat aktif *"
+                    name={ingredient.name}
+                    kfaCode={ingredient.kfa}
+                    onChange={(name, kfa) => setIngredient({ name, kfa })}
+                    placeholder="mis. paracetamol"
+                  />
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Lawan interaksi (interactant 2) tidak perlu diisi — AI akan mendistilasi sendiri semua zat yang
+                    diketahui berinteraksi dengan zat aktif ini.
+                  </p>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="prompt-override">Prompt kustom (opsional — kosongkan untuk template standar)</Label>
