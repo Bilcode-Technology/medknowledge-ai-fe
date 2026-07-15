@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FlaskConical, Sparkles, Eye, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
@@ -46,7 +46,9 @@ function runStatusBadge(status: string) {
   );
 }
 
-export default function DistillationPage() {
+// useSearchParams() wajib berada di bawah <Suspense> saat prerender build —
+// karena itu isi halaman dipisah ke komponen sendiri (lihat default export bawah).
+function DistillationPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -229,5 +231,13 @@ export default function DistillationPage() {
         </Card>
       </div>
     </ProtectedShell>
+  );
+}
+
+export default function DistillationPage() {
+  return (
+    <Suspense>
+      <DistillationPageContent />
+    </Suspense>
   );
 }
