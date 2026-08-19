@@ -42,7 +42,7 @@ function NavCtas({ onNavigate }: { onNavigate?: () => void }) {
 
   if (user) {
     return (
-      <Button render={<Link href="/dashboard" onClick={onNavigate} />} size="sm">
+      <Button render={<Link href="/dashboard" onClick={onNavigate} />} nativeButton={false} size="sm">
         Buka Dashboard
       </Button>
     )
@@ -52,12 +52,13 @@ function NavCtas({ onNavigate }: { onNavigate?: () => void }) {
     <>
       <Button
         render={<Link href="/login" onClick={onNavigate} />}
+        nativeButton={false}
         variant="outline"
         size="sm"
       >
         Masuk
       </Button>
-      <Button render={<a href={DEMO_MAILTO} onClick={onNavigate} />} size="sm">
+      <Button render={<a href={DEMO_MAILTO} onClick={onNavigate} />} nativeButton={false} size="sm">
         Minta Demo
       </Button>
     </>

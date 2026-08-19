@@ -58,7 +58,7 @@ export function HeroSection() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
-            <Button render={<a href={DEMO_MAILTO} />} size="lg">
+            <Button render={<a href={DEMO_MAILTO} />} nativeButton={false} size="lg">
               Minta Demo
             </Button>
             <Link

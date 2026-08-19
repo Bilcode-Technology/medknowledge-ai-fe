@@ -11,7 +11,7 @@ export function CtaSection() {
             Ready to bring clinical knowledge governance to your institution?
           </h2>
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-            <Button render={<a href={DEMO_MAILTO} />} size="lg">
+            <Button render={<a href={DEMO_MAILTO} />} nativeButton={false} size="lg">
               Minta Demo
             </Button>
             <Link
