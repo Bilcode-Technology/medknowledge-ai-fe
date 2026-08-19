@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Folder, FileText, Cpu, CheckCircle2, Clock, AlertTriangle, Eye, Plus } from "lucide-react";
+import { Folder, FileText, Cpu, Eye, Plus } from "lucide-react";
 import { ProtectedShell } from "@/components/protected-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import {
   Dialog,
   DialogContent,
@@ -18,92 +19,31 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { apiFetch, ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import type { AiDraftAccuracy, AverageVerificationTime, Paginated, Project } from "@/lib/types";
+import { PROJECT_PHASE_GROUPS, PROJECT_STATUS_LABEL } from "@/lib/project-status";
+import { PipelineSummaryWidget } from "@/components/dashboard/pipeline-summary-widget";
+import { BottleneckWidget } from "@/components/dashboard/bottleneck-widget";
+import { RecentActivityWidget } from "@/components/dashboard/recent-activity-widget";
+import { AdminOverviewWidget } from "@/components/dashboard/admin-overview-widget";
+import { AcquisitionQueueWidget } from "@/components/dashboard/acquisition-queue-widget";
+import { TerminologyQueueWidget } from "@/components/dashboard/terminology-queue-widget";
+import { AnnotationQueueWidget } from "@/components/dashboard/annotation-queue-widget";
+import { FhirQueueWidget } from "@/components/dashboard/fhir-queue-widget";
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Draft",
-  source_upload: "Source Upload",
-  metadata_validation: "Metadata Validation",
-  ai_extraction: "AI Extraction",
-  reference_check: "Reference Check",
-  kfa_mapping: "KFA Mapping",
-  ai_draft: "AI Draft",
-  pharmacist_review: "Pharmacist Review",
-  request_revision: "Revision Requested",
-  senior_review: "Senior Review",
-  arbitration: "Arbitration",
-  published: "Published",
-  fhir_sync: "FHIR Synced",
-  maintenance: "Maintenance",
-  auto_rejected: "Auto Rejected",
-  reject_source: "Source Rejected",
-};
-
-// M01 — Kanban read-only: Project.status punya ~15 nilai yang seluruhnya
-// system-driven (AI extraction, decision gates, review) — PUT /projects/{id}
-// bahkan tidak menerima field status sama sekali. Jadi board ini murni
-// visualisasi progres, dikelompokkan ke 4 fase logis (bukan 1 kolom per raw
-// status, yang akan menghasilkan 15 kolom yang tidak usable).
-type PhaseGroup = { key: string; title: string; statuses: string[] };
-
-const PHASE_GROUPS: PhaseGroup[] = [
-  {
-    key: "acquisition",
-    title: "Acquisition",
-    statuses: ["draft", "source_upload", "metadata_validation", "reject_source"],
-  },
-  {
-    key: "extraction_decision",
-    title: "Extraction & Decision",
-    statuses: ["ai_extraction", "reference_check", "auto_rejected", "kfa_mapping", "ai_draft"],
-  },
-  {
-    key: "review",
-    title: "Review",
-    // pharmacist_review jarang muncul di Project row (M30/31 melacak status review
-    // terutama lewat Annotation.status), tapi disertakan untuk kelengkapan.
-    statuses: ["pharmacist_review", "request_revision", "senior_review", "arbitration"],
-  },
-  {
-    key: "done",
-    title: "Done",
-    statuses: ["published", "fhir_sync", "maintenance"],
-  },
-];
-
-function statusBadge(status: string) {
-  if (status === "published" || status === "fhir_sync") {
-    return (
-      <Badge className="bg-success/10 text-success border-success/20 text-[10px] flex items-center gap-1 w-fit">
-        <CheckCircle2 className="h-3 w-3" /> {STATUS_LABEL[status] ?? status}
-      </Badge>
-    );
-  }
-  if (status === "senior_review" || status === "request_revision") {
-    return (
-      <Badge className="bg-warning/10 text-warning border-warning/20 text-[10px] flex items-center gap-1 w-fit">
-        <AlertTriangle className="h-3 w-3" /> {STATUS_LABEL[status] ?? status}
-      </Badge>
-    );
-  }
+function priorityBadge(priority: string) {
+  const tone = priority === "contraindicated" ? "destructive" : priority === "minor" ? "muted" : "warning";
   return (
-    <Badge className="bg-info/10 text-info border-info/20 text-[10px] flex items-center gap-1 w-fit">
-      <Clock className="h-3 w-3" /> {STATUS_LABEL[status] ?? status}
-    </Badge>
+    <StatusBadge tone={tone} className="capitalize">
+      {priority}
+    </StatusBadge>
   );
 }
 
-function priorityBadge(priority: string) {
-  const styles: Record<string, string> = {
-    contraindicated: "bg-destructive/10 text-destructive border-destructive/20",
-    major: "bg-warning/15 text-warning border-warning/25",
-    moderate: "bg-warning/10 text-warning border-warning/20",
-    minor: "bg-muted text-muted-foreground border-border",
-  };
-  return <Badge className={`${styles[priority] ?? styles.minor} text-[10px] capitalize`}>{priority}</Badge>;
-}
-
-export default function DashboardHome() {
+// Project pipeline overview — the closest thing to "everything, everywhere,"
+// so it's shown only to the two roles actually responsible for the whole
+// portfolio (PM, Admin), not surfaced as the default view for every role.
+function PipelineBoard() {
   const [projects, setProjects] = useState<Paginated<Project> | null>(null);
   const [accuracy, setAccuracy] = useState<AiDraftAccuracy | null>(null);
   const [verificationTime, setVerificationTime] = useState<AverageVerificationTime | null>(null);
@@ -115,9 +55,6 @@ export default function DashboardHome() {
   async function loadData() {
     try {
       const [projectsData, accuracyData, verificationData] = await Promise.all([
-        // NOTE: /projects dipaginasi (ProjectController::index -> paginate() tanpa
-        // membaca query per_page dari request), jadi board ini hanya menampilkan
-        // page 1 — tidak ada per_page yang bisa diminta tanpa mengubah backend.
         apiFetch<Paginated<Project>>("/projects"),
         apiFetch<AiDraftAccuracy>("/reports/ai-draft-accuracy"),
         apiFetch<AverageVerificationTime>("/reports/average-verification-time"),
@@ -154,14 +91,10 @@ export default function DashboardHome() {
   }
 
   return (
-    <ProtectedShell breadcrumb="Dashboard Overview">
-      {error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">
-          {error}
-        </div>
-      )}
+    <div className="space-y-6">
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Projects</CardTitle>
@@ -201,11 +134,11 @@ export default function DashboardHome() {
         </Card>
       </div>
 
-      <Card className="shadow-xl">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
-            <CardTitle className="font-semibold">Clinical Knowledge Pipeline</CardTitle>
-            <CardDescription className="text-xs">Projects currently in the AI &amp; verification pipeline.</CardDescription>
+            <CardTitle className="font-semibold">Project Pipeline</CardTitle>
+            <CardDescription className="text-xs">Every project currently in the AI &amp; verification pipeline.</CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger
@@ -240,17 +173,14 @@ export default function DashboardHome() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          {/* Board read-only: 4 kolom fase, masing-masing scroll independen (overflow-y-auto),
-              tanpa drag-and-drop — status hanya berubah lewat side effect sistem (upload, AI job,
-              keputusan review), jadi drag card tidak akan pernah benar-benar memicu perubahan apa pun. */}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {PHASE_GROUPS.map((group) => {
+            {PROJECT_PHASE_GROUPS.map((group) => {
               const groupProjects = projects?.data.filter((project) => group.statuses.includes(project.status)) ?? [];
               return (
                 <div key={group.key} className="flex h-[600px] flex-col rounded-xl border border-border bg-muted/20">
                   <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.title}</h3>
-                    <Badge className="bg-muted text-muted-foreground border-border text-[10px]">{groupProjects.length}</Badge>
+                    <StatusBadge tone="muted">{groupProjects.length}</StatusBadge>
                   </div>
                   <div className="flex-1 space-y-2 overflow-y-auto p-2.5">
                     {groupProjects.map((project) => (
@@ -260,9 +190,10 @@ export default function DashboardHome() {
                             <span className="text-xs font-medium text-foreground">{project.name}</span>
                             {priorityBadge(project.priority)}
                           </div>
-                          {statusBadge(project.status)}
+                          <StatusBadge tone="info">{PROJECT_STATUS_LABEL[project.status] ?? project.status}</StatusBadge>
                           <Button
                             render={<Link href={`/projects/${project.id}`} />}
+                            nativeButton={false}
                             variant="ghost"
                             size="xs"
                             className="-ml-2 text-primary hover:text-foreground"
@@ -282,6 +213,96 @@ export default function DashboardHome() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  project_manager: "Project Manager",
+  data_acq_officer: "Data Acquisition Officer",
+  terminologist: "Terminologist",
+  pharmacist: "Pharmacist Reviewer",
+  senior_reviewer: "Senior Reviewer",
+  fhir_engineer: "FHIR Engineer",
+  arbiter: "Clinical Arbitrator",
+  admin: "Administrator",
+};
+
+export default function DashboardHome() {
+  const { user } = useAuth();
+  const roleCode = user?.role?.code;
+
+  return (
+    <ProtectedShell breadcrumb="Dashboard">
+      <div>
+        <h1 className="text-lg font-semibold text-foreground">
+          {roleCode ? `${ROLE_LABEL[roleCode] ?? user?.role?.name} dashboard` : "Dashboard"}
+        </h1>
+        <p className="text-sm text-muted-foreground">What&rsquo;s happening, what needs you, and what to do next.</p>
+      </div>
+
+      {roleCode === "project_manager" && (
+        <>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <PipelineSummaryWidget />
+            <BottleneckWidget />
+          </div>
+          <RecentActivityWidget />
+          <PipelineBoard />
+        </>
+      )}
+
+      {roleCode === "admin" && (
+        <>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <AdminOverviewWidget />
+            <RecentActivityWidget />
+          </div>
+          <PipelineSummaryWidget />
+          <PipelineBoard />
+        </>
+      )}
+
+      {roleCode === "data_acq_officer" && <AcquisitionQueueWidget />}
+
+      {roleCode === "terminologist" && <TerminologyQueueWidget />}
+
+      {roleCode === "pharmacist" && (
+        <AnnotationQueueWidget
+          status="draft"
+          title="Pending review"
+          description="Drafts ready for Pharmacist Review"
+          emptyMessage="Nothing waiting on you right now."
+        />
+      )}
+
+      {roleCode === "senior_reviewer" && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <AnnotationQueueWidget
+            status="senior_review"
+            title="Escalations"
+            description="Pharmacist-approved drafts awaiting your sign-off"
+            emptyMessage="No escalations right now."
+          />
+          <AnnotationQueueWidget
+            status="disputed"
+            title="Disputes"
+            description="Items you disputed, awaiting arbitration"
+            emptyMessage="No open disputes."
+          />
+        </div>
+      )}
+
+      {roleCode === "arbiter" && (
+        <AnnotationQueueWidget
+          status="disputed"
+          title="Arbitration queue"
+          description="Reviewer disagreements awaiting a final decision"
+          emptyMessage="No disputes to arbitrate."
+        />
+      )}
+
+      {roleCode === "fhir_engineer" && <FhirQueueWidget />}
     </ProtectedShell>
   );
 }

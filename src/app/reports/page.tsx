@@ -18,17 +18,18 @@ import { Label } from "@/components/ui/label";
 import { apiFetch, ApiError } from "@/lib/api";
 import type { AiDraftAccuracy, AverageVerificationTime, ReviewerThroughput } from "@/lib/types";
 
-// Warna literal (bukan class Tailwind) diambil dari palet .dark di globals.css —
+// Warna literal (bukan class Tailwind) diambil dari palet :root di globals.css —
 // Recharts merender SVG dan tidak membaca custom property lewat class, jadi
-// nilai oklch() dari tema dark disalin persis di sini supaya chart menyatu
-// dengan tema, bukan terlihat seperti komponen asing yang ditempel.
+// nilai oklch() dari tema disalin persis di sini supaya chart menyatu dengan
+// tema, bukan terlihat seperti komponen asing yang ditempel. App ini white-mode
+// only (tidak ada theme toggle), jadi hanya satu set nilai yang perlu disalin.
 const CHART_COLORS = {
-  bar: "oklch(0.72 0.11 195)", // --primary (dark)
-  grid: "oklch(1 0 0 / 8%)", // --border (dark)
-  axisText: "oklch(0.68 0.02 235)", // --muted-foreground (dark)
-  tooltipBg: "oklch(0.21 0.018 240)", // --card (dark)
-  tooltipBorder: "oklch(1 0 0 / 8%)", // --border (dark)
-  tooltipText: "oklch(0.94 0.006 235)", // --foreground (dark)
+  bar: "oklch(0.46 0.09 200)", // --primary
+  grid: "oklch(0.9 0.01 235)", // --border
+  axisText: "oklch(0.48 0.02 235)", // --muted-foreground
+  tooltipBg: "oklch(1 0 0)", // --card
+  tooltipBorder: "oklch(0.9 0.01 235)", // --border
+  tooltipText: "oklch(0.22 0.02 235)", // --foreground
 };
 
 export default function ReportsPage() {

@@ -247,3 +247,42 @@ export type CostSummaryRow = {
   total_tokens: number | null;
   total_cost_usd: string | null;
 };
+
+// Role-specific dashboard aggregation endpoints (DashboardController, AuditLogController).
+export type PipelineSummary = Record<string, number>;
+
+export type AcquisitionQueueItem = Source & {
+  project: { id: number; name: string } | null;
+};
+
+export type TerminologyQueueItem = DrugEntity;
+
+export type FhirQueueItem = {
+  id: number;
+  resource_type: string;
+  sync_status: string;
+  external_id: string | null;
+  error_message: string | null;
+  synced_at: string | null;
+  annotation: { id: number; status: string; project_id: number } | null;
+};
+
+export type SlaTimer = {
+  id: number;
+  state: string;
+  started_at: string;
+  sla_minutes: number;
+  escalated_at: string | null;
+  project: { id: number; name: string; status: string } | null;
+};
+
+export type AuditLogEntry = {
+  id: number;
+  entity_type: string;
+  entity_id: number;
+  action: string;
+  actor_id: number | null;
+  actor_type: string;
+  actor: { id: number; name: string } | null;
+  created_at: string;
+};

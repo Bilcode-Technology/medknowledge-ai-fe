@@ -24,12 +24,11 @@ export const metadata: Metadata = {
 };
 
 // Landing page publik — tidak dibungkus ProtectedShell (harus bisa diakses
-// tanpa login). `.landing-light` di-declare di globals.css: redeclare token
-// :root (light) secara lokal supaya section ini selalu white-mode, terlepas
-// dari class `dark` yang di-hardcode di <html> untuk app dashboard.
+// tanpa login). White-mode adalah default tunggal aplikasi (lihat
+// globals.css) jadi tidak perlu scoping tema lokal di sini lagi.
 export default function LandingPage() {
   return (
-    <div className="landing-light min-h-screen bg-background font-sans text-foreground">
+    <div className="min-h-screen bg-background font-sans text-foreground">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"

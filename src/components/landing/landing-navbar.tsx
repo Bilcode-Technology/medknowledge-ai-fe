@@ -69,7 +69,7 @@ export function LandingNavbar() {
   const [isMenuOpen, setMenuOpen] = useState(false)
 
   return (
-    <header className="landing-light sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
       <SectionContainer className="flex h-16 items-center justify-between">
         <Logo />
 
