@@ -20,7 +20,7 @@ import { useAuth } from "@/lib/auth-context";
 // Hanya berisi menu yang benar-benar punya halaman (bukan link "#" aspirational)
 // — lihat SCOPE.md/README frontend untuk daftar modul yang belum ada UI-nya.
 const menuItems = [
-  { title: "Dashboard", icon: Activity, url: "/" },
+  { title: "Dashboard", icon: Activity, url: "/dashboard" },
   // M50 — jalur utama: distilasi knowledge DDI dari AI model (ingredient-first).
   { title: "AI Distillation", icon: Sparkles, url: "/distillation" },
   // Tahap 1 (diagram workflow) — akuisisi bahan aktif ber-kode KFA.

@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     setToken(data.token);
     setUser(data.user);
-    router.push("/");
+    router.push("/dashboard");
   }
 
   async function logout() {
