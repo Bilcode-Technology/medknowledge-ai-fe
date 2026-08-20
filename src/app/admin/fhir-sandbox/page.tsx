@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { apiFetch, ApiError } from "@/lib/api";
 
 const DEFAULT_PAYLOAD = JSON.stringify({ resourceType: "Patient" }, null, 2);
@@ -57,9 +58,7 @@ export default function FhirSandboxPage() {
 
   return (
     <div className="space-y-4">
-      {error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">{error}</div>
-      )}
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
       <Card>
         <CardHeader>

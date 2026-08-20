@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Pencil, Plus, UserX } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import {
   Dialog,
   DialogContent,
@@ -170,11 +172,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      {error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">
-          {error}
-        </div>
-      )}
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -246,7 +244,7 @@ export default function AdminUsersPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  {createError && <p className="text-xs text-destructive">{createError}</p>}
+                  {createError && <ErrorBanner>{createError}</ErrorBanner>}
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSavingCreate}>
@@ -258,6 +256,15 @@ export default function AdminUsersPage() {
           </Dialog>
         </CardHeader>
         <CardContent className="space-y-3">
+          {!usersData && (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          )}
+          {usersData && (
+          <>
           <Table>
             <TableHeader>
               <TableRow>
@@ -274,20 +281,18 @@ export default function AdminUsersPage() {
                   <TableCell className="font-medium text-foreground">
                     {row.name}
                     {row.id === currentUser?.id && (
-                      <Badge className="ml-2 bg-muted text-muted-foreground border-border text-[10px]">You</Badge>
+                      <StatusBadge tone="muted" className="ml-2">You</StatusBadge>
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{row.email}</TableCell>
                   <TableCell>
-                    <Badge className="bg-info/10 text-info border-info/20 text-[10px]">
-                      {row.role?.name ?? "-"}
-                    </Badge>
+                    <StatusBadge tone="info">{row.role?.name ?? "-"}</StatusBadge>
                   </TableCell>
                   <TableCell>
                     {row.is_active ? (
-                      <Badge className="bg-success/10 text-success border-success/20 text-[10px]">Active</Badge>
+                      <StatusBadge tone="success">Active</StatusBadge>
                     ) : (
-                      <Badge className="bg-muted text-muted-foreground border-border text-[10px]">Inactive</Badge>
+                      <StatusBadge tone="muted">Inactive</StatusBadge>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -343,6 +348,8 @@ export default function AdminUsersPage() {
                 </Button>
               </div>
             </div>
+          )}
+          </>
           )}
         </CardContent>
       </Card>
@@ -425,7 +432,7 @@ export default function AdminUsersPage() {
                     that change.
                   </p>
                 )}
-                {editError && <p className="text-xs text-destructive">{editError}</p>}
+                {editError && <ErrorBanner>{editError}</ErrorBanner>}
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingEdit}>

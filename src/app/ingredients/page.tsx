@@ -5,9 +5,11 @@ import { Pill, Search } from "lucide-react";
 import { ProtectedShell } from "@/components/protected-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Input } from "@/components/ui/input";
-import { apiFetch } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-banner";
+import { apiFetch, ApiError } from "@/lib/api";
 import type { DrugEntity, KfaCodeItem, Paginated } from "@/lib/types";
 
 // Tahap 1 — Akuisisi Bahan Aktif ber-kode KFA (diagram workflow): pencarian
@@ -18,19 +20,25 @@ export default function IngredientsPage() {
   const [query, setQuery] = useState("");
   const [kfaResults, setKfaResults] = useState<KfaCodeItem[]>([]);
   const [searched, setSearched] = useState(false);
-  const [entities, setEntities] = useState<DrugEntity[]>([]);
+  const [kfaError, setKfaError] = useState<string | null>(null);
+  const [entities, setEntities] = useState<DrugEntity[] | null>(null);
+  const [entitiesError, setEntitiesError] = useState<string | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch data saat mount
     apiFetch<Paginated<DrugEntity>>("/drug-entities")
       .then((res) => setEntities(res.data))
-      .catch(() => setEntities([]));
+      .catch((err) => {
+        setEntities([]);
+        setEntitiesError(err instanceof ApiError ? err.message : "Failed to load drug entities.");
+      });
   }, []);
 
   useEffect(() => {
     if (query.trim().length < 2) {
       setKfaResults([]);
       setSearched(false);
+      setKfaError(null);
       return;
     }
     const timeout = setTimeout(() => {
@@ -38,8 +46,12 @@ export default function IngredientsPage() {
         .then((items) => {
           setKfaResults(items);
           setSearched(true);
+          setKfaError(null);
         })
-        .catch(() => setKfaResults([]));
+        .catch((err) => {
+          setKfaResults([]);
+          setKfaError(err instanceof ApiError ? err.message : "Failed to search KFA codes.");
+        });
     }, 300);
     return () => clearTimeout(timeout);
   }, [query]);
@@ -67,7 +79,8 @@ export default function IngredientsPage() {
                 className="pl-8"
               />
             </div>
-            {searched && kfaResults.length === 0 && (
+            {kfaError && <ErrorBanner>{kfaError}</ErrorBanner>}
+            {searched && !kfaError && kfaResults.length === 0 && (
               <p className="text-xs text-warning">
                 No results. If the KFA dataset hasn&apos;t been imported yet, run <code>php artisan kfa:import</code> on the
                 server — distillation still works with a free-text substance name in the meantime (code assigned later).
@@ -101,10 +114,18 @@ export default function IngredientsPage() {
               Active ingredients already in the system along with their terminology codes (KFA / RxNorm / ATC).
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {entities.length === 0 ? (
+          <CardContent className="space-y-3">
+            {entitiesError && <ErrorBanner>{entitiesError}</ErrorBanner>}
+            {entities === null && !entitiesError && (
+              <div className="space-y-2">
+                {[0, 1, 2].map((i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
+            )}
+            {entities && entities.length === 0 ? (
               <p className="text-xs text-muted-foreground">No drug entities yet.</p>
-            ) : (
+            ) : entities && (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -120,9 +141,9 @@ export default function IngredientsPage() {
                       <TableCell className="text-xs font-medium">{entity.canonical_name}</TableCell>
                       <TableCell>
                         {entity.kfa_code ? (
-                          <Badge className="bg-success/10 text-success border-success/20 text-[10px] font-mono">
+                          <StatusBadge tone="success" className="font-mono">
                             {entity.kfa_code}
-                          </Badge>
+                          </StatusBadge>
                         ) : (
                           <span className="text-[10px] text-muted-foreground">none</span>
                         )}

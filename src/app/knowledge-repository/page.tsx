@@ -4,21 +4,23 @@ import { useEffect, useState } from "react";
 import { Search, BookOpen } from "lucide-react";
 import { ProtectedShell } from "@/components/protected-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { apiFetch, ApiError } from "@/lib/api";
 import { sanitizeHtml } from "@/lib/sanitize";
 import type { Annotation, Paginated } from "@/lib/types";
 
-const SEVERITY_STYLE: Record<string, string> = {
-  contraindicated: "bg-destructive/10 text-destructive border-destructive/20",
-  major: "bg-warning/15 text-warning border-warning/25",
-  moderate: "bg-warning/10 text-warning border-warning/20",
-  minor: "bg-muted text-muted-foreground border-border",
+const SEVERITY_TONE: Record<string, StatusTone> = {
+  contraindicated: "destructive",
+  major: "warning",
+  moderate: "warning",
+  minor: "muted",
 };
 
 export default function KnowledgeRepositoryPage() {
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [annotations, setAnnotations] = useState<Annotation[] | null>(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -58,8 +60,17 @@ export default function KnowledgeRepositoryPage() {
             />
           </div>
 
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && <ErrorBanner>{error}</ErrorBanner>}
 
+          {annotations === null && !error && (
+            <div className="space-y-3">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          )}
+
+          {annotations && (
           <div className="divide-y divide-border">
             {annotations.map((annotation) => (
               <div key={annotation.id} className="py-4 first:pt-0 last:pb-0 space-y-2">
@@ -68,9 +79,12 @@ export default function KnowledgeRepositoryPage() {
                     {annotation.extraction.drug_a?.canonical_name} × {annotation.extraction.drug_b?.canonical_name}
                   </span>
                   {annotation.extraction.severity_schema && (
-                    <Badge className={`${SEVERITY_STYLE[annotation.extraction.severity_schema.code] ?? SEVERITY_STYLE.minor} text-[10px] capitalize`}>
+                    <StatusBadge
+                      tone={SEVERITY_TONE[annotation.extraction.severity_schema.code] ?? "muted"}
+                      className="capitalize"
+                    >
                       {annotation.extraction.severity_schema.code}
-                    </Badge>
+                    </StatusBadge>
                   )}
                 </div>
                 <p className="text-[11px] text-muted-foreground">{annotation.project.name}</p>
@@ -80,12 +94,13 @@ export default function KnowledgeRepositoryPage() {
                 />
               </div>
             ))}
-            {annotations.length === 0 && !error && (
+            {annotations.length === 0 && (
               <p className="text-xs text-muted-foreground text-center py-8">
                 No published interactions match this search.
               </p>
             )}
           </div>
+          )}
         </CardContent>
       </Card>
     </ProtectedShell>

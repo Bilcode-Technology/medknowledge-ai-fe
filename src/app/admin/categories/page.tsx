@@ -17,6 +17,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { apiFetch, ApiError } from "@/lib/api";
 import type { Category } from "@/lib/types";
 
@@ -31,7 +33,7 @@ function CategorySection({
   resourcePath: "disease-categories" | "drug-categories";
   title: string;
 }) {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [isCreateOpen, setCreateOpen] = useState(false);
@@ -61,7 +63,7 @@ function CategorySection({
 
   function categoryName(id: number | null): string {
     if (id == null) return "-";
-    return categories.find((c) => c.id === id)?.name ?? `#${id}`;
+    return categories?.find((c) => c.id === id)?.name ?? `#${id}`;
   }
 
   async function handleCreate(event: React.FormEvent) {
@@ -131,7 +133,9 @@ function CategorySection({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="text-sm">{title}</CardTitle>
-          <CardDescription className="text-xs">{categories.length} registered categories.</CardDescription>
+          <CardDescription className="text-xs">
+            {categories ? `${categories.length} registered categories.` : "Loading..."}
+          </CardDescription>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger
@@ -167,7 +171,7 @@ function CategorySection({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">No parent (root)</SelectItem>
-                      {categories.map((cat) => (
+                      {(categories ?? []).map((cat) => (
                         <SelectItem key={cat.id} value={String(cat.id)}>
                           {cat.name}
                         </SelectItem>
@@ -175,7 +179,7 @@ function CategorySection({
                     </SelectContent>
                   </Select>
                 </div>
-                {createError && <p className="text-xs text-destructive">{createError}</p>}
+                {createError && <ErrorBanner>{createError}</ErrorBanner>}
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingCreate}>
@@ -186,12 +190,16 @@ function CategorySection({
           </DialogContent>
         </Dialog>
       </CardHeader>
-      <CardContent>
-        {error && (
-          <div className="mb-3 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">
-            {error}
+      <CardContent className="space-y-3">
+        {error && <ErrorBanner>{error}</ErrorBanner>}
+        {categories === null && !error && (
+          <div className="space-y-2">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-8 w-full" />
+            ))}
           </div>
         )}
+        {categories && (
         <Table>
           <TableHeader>
             <TableRow>
@@ -231,6 +239,7 @@ function CategorySection({
             )}
           </TableBody>
         </Table>
+        )}
       </CardContent>
 
       <Dialog
@@ -266,7 +275,7 @@ function CategorySection({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">No parent (root)</SelectItem>
-                      {categories
+                      {(categories ?? [])
                         .filter((cat) => cat.id !== editing.id)
                         .map((cat) => (
                           <SelectItem key={cat.id} value={String(cat.id)}>
@@ -276,7 +285,7 @@ function CategorySection({
                     </SelectContent>
                   </Select>
                 </div>
-                {editError && <p className="text-xs text-destructive">{editError}</p>}
+                {editError && <ErrorBanner>{editError}</ErrorBanner>}
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingEdit}>

@@ -6,6 +6,8 @@ import { ProtectedShell } from "@/components/protected-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { apiFetch, ApiError } from "@/lib/api";
 import type { NotificationPreferences } from "@/lib/types";
 
@@ -51,11 +53,7 @@ export default function NotificationSettingsPage() {
 
   return (
     <ProtectedShell breadcrumb="Notification Settings">
-      {error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">
-          {error}
-        </div>
-      )}
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
       <Card className="max-w-lg">
         <CardHeader>
@@ -67,22 +65,31 @@ export default function NotificationSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Label className="flex items-center gap-2 font-normal text-xs">
-            <Checkbox
-              checked={preferences?.email ?? false}
-              disabled={!preferences || savingChannel === "email"}
-              onCheckedChange={(checked) => handleToggle("email", checked === true)}
-            />
-            <span>Email</span>
-          </Label>
-          <Label className="flex items-center gap-2 font-normal text-xs">
-            <Checkbox
-              checked={preferences?.whatsapp ?? false}
-              disabled={!preferences || savingChannel === "whatsapp"}
-              onCheckedChange={(checked) => handleToggle("whatsapp", checked === true)}
-            />
-            <span>WhatsApp</span>
-          </Label>
+          {!preferences && !error ? (
+            <div className="space-y-2.5">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-5 w-40" />
+            </div>
+          ) : (
+            <>
+              <Label className="flex items-center gap-2 font-normal text-xs">
+                <Checkbox
+                  checked={preferences?.email ?? false}
+                  disabled={!preferences || savingChannel === "email"}
+                  onCheckedChange={(checked) => handleToggle("email", checked === true)}
+                />
+                <span>Email</span>
+              </Label>
+              <Label className="flex items-center gap-2 font-normal text-xs">
+                <Checkbox
+                  checked={preferences?.whatsapp ?? false}
+                  disabled={!preferences || savingChannel === "whatsapp"}
+                  onCheckedChange={(checked) => handleToggle("whatsapp", checked === true)}
+                />
+                <span>WhatsApp</span>
+              </Label>
+            </>
+          )}
         </CardContent>
       </Card>
     </ProtectedShell>

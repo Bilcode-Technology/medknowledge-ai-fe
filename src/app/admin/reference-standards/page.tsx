@@ -16,6 +16,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { apiFetch, ApiError } from "@/lib/api";
 import type { ReferenceStandard } from "@/lib/types";
 
@@ -40,7 +42,7 @@ function toBody(form: StandardForm) {
 }
 
 export default function AdminReferenceStandardsPage() {
-  const [standards, setStandards] = useState<ReferenceStandard[]>([]);
+  const [standards, setStandards] = useState<ReferenceStandard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [isCreateOpen, setCreateOpen] = useState(false);
@@ -130,7 +132,9 @@ export default function AdminReferenceStandardsPage() {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
           <CardTitle className="text-sm">Reference Standards (M08)</CardTitle>
-          <CardDescription className="text-xs">{standards.length} registered reference standards.</CardDescription>
+          <CardDescription className="text-xs">
+            {standards ? `${standards.length} registered reference standards.` : "Loading..."}
+          </CardDescription>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger
@@ -193,7 +197,7 @@ export default function AdminReferenceStandardsPage() {
                     onChange={(e) => setCreateForm((f) => ({ ...f, description: e.target.value }))}
                   />
                 </div>
-                {createError && <p className="text-xs text-destructive">{createError}</p>}
+                {createError && <ErrorBanner>{createError}</ErrorBanner>}
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingCreate}>
@@ -204,12 +208,16 @@ export default function AdminReferenceStandardsPage() {
           </DialogContent>
         </Dialog>
       </CardHeader>
-      <CardContent>
-        {error && (
-          <div className="mb-3 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs text-destructive">
-            {error}
+      <CardContent className="space-y-3">
+        {error && <ErrorBanner>{error}</ErrorBanner>}
+        {standards === null && !error && (
+          <div className="space-y-2">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-8 w-full" />
+            ))}
           </div>
         )}
+        {standards && (
         <Table>
           <TableHeader>
             <TableRow>
@@ -268,6 +276,7 @@ export default function AdminReferenceStandardsPage() {
             )}
           </TableBody>
         </Table>
+        )}
       </CardContent>
 
       <Dialog
@@ -330,7 +339,7 @@ export default function AdminReferenceStandardsPage() {
                     onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
                   />
                 </div>
-                {editError && <p className="text-xs text-destructive">{editError}</p>}
+                {editError && <ErrorBanner>{editError}</ErrorBanner>}
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSavingEdit}>
